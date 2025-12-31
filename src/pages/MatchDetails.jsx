@@ -4,7 +4,7 @@ import API from '../utils/api';
 import { FaArrowLeft, FaBolt, FaExclamationTriangle, FaUserAlt, FaCamera, FaSpinner } from "react-icons/fa";
 import html2canvas from 'html2canvas';
 
-// ✅ SafeLogo: معالجة الصور لضمان عمل html2canvas
+// ✅ SafeLogo: معالجة الصور لضمان عمل html2canvas ومنع مشاكل الـ CORS
 const SafeLogo = ({ url }) => {
     const [imgSrc, setImgSrc] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -95,7 +95,7 @@ const MatchDetails = () => {
             const image = canvas.toDataURL("image/png");
             const link = document.createElement('a');
             link.href = image;
-            link.download = `GW${data.fixture.gameweek}-Match.png`;
+            link.download = `Match-Details.png`;
             link.click();
         } catch (error) { alert("فشل تصدير الصورة"); }
         setExporting(false);
@@ -138,18 +138,7 @@ const MatchDetails = () => {
                         {isTripleCaptain && player.isCaptain && ( <span style={{fontSize:'8px', background:'black', color:'white', padding:'2px 4px', borderRadius:'3px'}}>TC</span> )}
                     </div>
                 </div>
-                <div style={{ 
-                    width: isMobile ? '32px' : '40px', 
-                    height: isMobile ? '32px' : '40px', 
-                    borderRadius: '50%', 
-                    backgroundColor: player.isStarter ? (isHome ? '#38003c' : '#009688') : '#757575', 
-                    color: 'white', 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
-                    fontWeight: 'bold', 
-                    fontSize: isMobile ? '14px' : '18px'
-                }}>
+                <div style={{ width: isMobile ? '32px' : '40px', height: isMobile ? '32px' : '40px', borderRadius: '50%', backgroundColor: player.isStarter ? (isHome ? '#38003c' : '#009688') : '#757575', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: isMobile ? '14px' : '18px' }}>
                     {displayScore}
                 </div>
             </div>
@@ -158,15 +147,16 @@ const MatchDetails = () => {
 
     return (
         <div style={{ padding: isMobile ? '10px' : '20px', backgroundColor: '#f5f7fa', minHeight: '100vh', direction: 'rtl' }}>
+            {/* Header Controls */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                 <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: isMobile ? '14px' : '16px', color:'#555', fontWeight:'bold' }}> <FaArrowLeft /> عودة </button>
-                <button onClick={handleExportImage} disabled={exporting} style={{ background: '#38003c', color: '#00ff85', border: 'none', borderRadius: '20px', padding: '6px 12px', fontSize: isMobile ? '12px' : '14px', cursor: 'pointer', display:'flex', alignItems:'center', gap:'5px' }}> 
+                <button onClick={handleExportImage} disabled={exporting} style={{ background: '#38003c', color: '#00ff85', border: 'none', borderRadius: '20px', padding: '6px 15px', fontSize: isMobile ? '12px' : '14px', cursor: 'pointer', display:'flex', alignItems:'center', gap:'5px' }}> 
                     {exporting ? <FaSpinner className="fa-spin"/> : <FaCamera />} {isMobile ? 'حفظ' : 'حفظ كصورة'}
                 </button>
             </div>
 
             <div ref={matchRef} style={{ padding: '5px', backgroundColor: '#f5f7fa' }}>
-                {/* Scoreboard */}
+                {/* 🏆 Scoreboard - النسخة النهائية المحسنة للتمركز 🏆 */}
                 <div style={{ 
                     background: 'linear-gradient(135deg, #38003c 0%, #1a001b 100%)', 
                     borderRadius: '20px', 
@@ -174,25 +164,35 @@ const MatchDetails = () => {
                     color: 'white', 
                     marginBottom: '20px', 
                     display: 'flex', 
-                    justifyContent: 'space-around', 
-                    alignItems: 'center'
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    boxShadow: '0 10px 20px rgba(56, 0, 60, 0.3)'
                 }}>
-                    <div style={{ textAlign: 'center', flex: 1 }}>
+                    <div style={{ flex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <SafeLogo url={fixture.homeTeamId?.logoUrl} />
-                        <h4 style={{ margin: '5px 0', fontSize: isMobile ? '14px' : '18px' }}>{fixture.homeTeamId?.name}</h4>
+                        <h4 style={{ margin: '8px 0', fontSize: isMobile ? '12px' : '18px', fontWeight: 'bold' }}>{fixture.homeTeamId?.name}</h4>
                         {homeLineup?.activeChip && homeLineup.activeChip !== 'none' && ( <div style={{ background: '#e91e63', padding: '2px 8px', borderRadius: '10px', fontSize: '9px', fontWeight:'bold' }}> <FaBolt /> {homeLineup.activeChip} </div> )}
                     </div>
 
-                    <div style={{ textAlign: 'center', padding: '0 10px' }}>
-                        <div style={{ fontSize: '11px', color: '#00ff85', fontWeight:'bold' }}>GW {fixture.gameweek}</div>
-                        <div style={{ fontSize: isMobile ? '32px' : '48px', fontWeight: 'bold', fontFamily:'Impact' }}>
-                            {fixture.isFinished ? `${fixture.homeScore} - ${fixture.awayScore}` : 'VS'}
+                    <div style={{ flex: 0.8, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minWidth: isMobile ? '80px' : '150px' }}>
+                        <div style={{ fontSize: isMobile ? '10px' : '12px', color: '#00ff85', fontWeight:'bold', marginBottom: '5px' }}>GW {fixture.gameweek}</div>
+                        <div style={{ fontSize: isMobile ? '28px' : '48px', fontWeight: '900', fontFamily: 'monospace', display: 'flex', alignItems: 'center', gap: isMobile ? '5px' : '15px', letterSpacing: '1px' }}>
+                            {fixture.isFinished ? (
+                                <>
+                                    <span>{fixture.homeScore}</span>
+                                    <span style={{ opacity: 0.3 }}>-</span>
+                                    <span>{fixture.awayScore}</span>
+                                </>
+                            ) : (
+                                <span style={{ fontSize: isMobile ? '20px' : '32px', color: '#00ff85' }}>VS</span>
+                            )}
                         </div>
+                        <small style={{ fontSize: '9px', opacity: 0.6, marginTop: '5px', fontWeight: 'bold' }}>FINAL SCORE</small>
                     </div>
 
-                    <div style={{ textAlign: 'center', flex: 1 }}>
+                    <div style={{ flex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <SafeLogo url={fixture.awayTeamId?.logoUrl} />
-                        <h4 style={{ margin: '5px 0', fontSize: isMobile ? '14px' : '18px' }}>{fixture.awayTeamId?.name}</h4>
+                        <h4 style={{ margin: '8px 0', fontSize: isMobile ? '12px' : '18px', fontWeight: 'bold' }}>{fixture.awayTeamId?.name}</h4>
                         {awayLineup?.activeChip && awayLineup.activeChip !== 'none' && ( <div style={{ background: '#e91e63', padding: '2px 8px', borderRadius: '10px', fontSize: '9px', fontWeight:'bold' }}> <FaBolt /> {awayLineup.activeChip} </div> )}
                     </div>
                 </div>
