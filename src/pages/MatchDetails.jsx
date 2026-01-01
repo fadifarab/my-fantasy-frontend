@@ -113,7 +113,7 @@ const MatchDetails = () => {
     const { fixture, homeLineup, awayLineup } = data;
 
     const PlayerCard = ({ player, isHome }) => (
-        <div style={{ 
+        <div className="player-card-row" style={{ 
             display: 'flex', flexDirection: isHome ? 'row' : 'row-reverse', 
             alignItems: 'center', padding: '10px 15px', marginBottom: '8px', 
             borderRadius: '12px', backgroundColor: player.isStarter ? 'white' : '#f8f8f8', 
@@ -124,7 +124,7 @@ const MatchDetails = () => {
             height: '60px' // طول ثابت للبطاقة
         }}>
             {/* جهة الاسم */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexDirection: isHome ? 'row' : 'row-reverse', width: '40%' }}>
+            <div className="player-name-box" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexDirection: isHome ? 'row' : 'row-reverse', width: '40%' }}>
                 <div style={{ position: 'relative' }}>
                     <div style={{ width: '32px', height: '32px', background: '#eee', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <FaUserAlt size={14} color={player.isStarter ? '#38003c' : '#bbb'} />
@@ -155,34 +155,34 @@ const MatchDetails = () => {
     );
 
     return (
-        <div style={{ padding: '20px', backgroundColor: '#f5f7fa', minHeight: '100vh', direction: 'rtl' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '850px', margin: '0 auto 20px' }}>
+        <div style={{ padding: '20px', backgroundColor: '#f5f7fa', minHeight: '100vh', direction: 'rtl' }} className="details-page-container">
+            <div className="top-nav" style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '850px', margin: '0 auto 20px' }}>
                 <button onClick={() => navigate(-1)} style={{ background: '#fff', border: 'none', borderRadius: '8px', padding: '8px 15px', fontWeight: 'bold', cursor: 'pointer' }}><FaArrowLeft /> عودة</button>
                 <button onClick={handleExportImage} disabled={exporting} style={{ background: '#38003c', color: '#00ff85', border: 'none', borderRadius: '10px', padding: '10px 20px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     {exporting ? <FaSpinner className="fa-spin" /> : <><FaCamera /> حفظ الصورة</>}
                 </button>
             </div>
 
-            <div ref={matchRef} style={{ maxWidth: '850px', margin: '0 auto', background: '#fff', borderRadius: '25px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
+            <div ref={matchRef} className="match-card-main" style={{ maxWidth: '850px', margin: '0 auto', background: '#fff', borderRadius: '25px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
                 {/* الترويسة المثالية */}
-                <div style={{ background: 'linear-gradient(135deg, #38003c 0%, #240028 100%)', padding: '40px 20px', color: 'white' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>
+                <div className="header-gradient" style={{ background: 'linear-gradient(135deg, #38003c 0%, #240028 100%)', padding: '40px 20px', color: 'white' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }} className="score-row">
                         
-                        <div style={{ flex: 2, textAlign: 'center' }}>
+                        <div style={{ flex: 2, textAlign: 'center' }} className="team-box">
                             <div style={{ display: 'flex', justifyContent: 'center' }}>
                                 <SafeLogo url={fixture.homeTeamId?.logoUrl} size={90} />
                             </div>
                             <h4 style={{ marginTop: '12px', fontSize: '18px', fontWeight: '900' }}>{fixture.homeTeamId?.name}</h4>
                         </div>
 
-                        <div style={{ flex: 3, textAlign: 'center' }}>
+                        <div style={{ flex: 3, textAlign: 'center' }} className="score-box">
                             <div style={{ fontSize: '12px', color: '#00ff85', fontWeight: 'bold', marginBottom: '5px' }}>GAMEWEEK {fixture.gameweek}</div>
-                            <div style={{ fontSize: '60px', fontWeight: '900', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px' }}>
+                            <div style={{ fontSize: '60px', fontWeight: '900', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px' }} className="score-numbers">
                                 <span>{fixture.homeScore}</span><span style={{opacity:0.3}}>:</span><span>{fixture.awayScore}</span>
                             </div>
                         </div>
 
-                        <div style={{ flex: 2, textAlign: 'center' }}>
+                        <div style={{ flex: 2, textAlign: 'center' }} className="team-box">
                             <div style={{ display: 'flex', justifyContent: 'center' }}>
                                 <SafeLogo url={fixture.awayTeamId?.logoUrl} size={90} />
                             </div>
@@ -192,18 +192,33 @@ const MatchDetails = () => {
                 </div>
 
                 {/* التشكيلات */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', padding: '25px' }}>
-                    <div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', padding: '25px' }} className="lineups-grid">
+                    <div className="lineup-col">
                         <div style={{ padding: '8px', borderBottom: '3px solid #38003c', marginBottom: '15px', fontWeight: 'bold', color: '#38003c', textAlign: 'center' }}>صاحب الأرض</div>
                         {sortLineup(homeLineup?.lineup).map((p, i) => <PlayerCard key={i} player={p} isHome={true} />)}
                     </div>
-                    <div>
+                    <div className="lineup-col">
                         <div style={{ padding: '8px', borderBottom: '3px solid #00ff85', marginBottom: '15px', fontWeight: 'bold', color: '#00796b', textAlign: 'center' }}>الضيوف</div>
                         {sortLineup(awayLineup?.lineup).map((p, i) => <PlayerCard key={i} player={p} isHome={false} />)}
                     </div>
                 </div>
             </div>
-            <style>{`.fa-spin { animation: spin 2s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
+            <style>{`
+                .fa-spin { animation: spin 2s linear infinite; } 
+                @keyframes spin { 100% { transform: rotate(360deg); } }
+
+                /* 📱 تحسينات الهاتف الشاملة لضمان التجاوب دون حذف كود */
+                @media (max-width: 768px) {
+                    .details-page-container { padding: 10px !important; }
+                    .header-gradient { padding: 25px 10px !important; }
+                    .score-row { gap: 10px !important; }
+                    .score-numbers { font-size: 35px !important; }
+                    .team-box h4 { font-size: 14px !important; }
+                    .lineups-grid { grid-template-columns: 1fr !important; padding: 15px !important; }
+                    .player-name-box { width: 55% !important; }
+                    .player-card-row { padding: 10px !important; }
+                }
+            `}</style>
         </div>
     );
 };
