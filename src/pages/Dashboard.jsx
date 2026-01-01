@@ -39,7 +39,7 @@ const Dashboard = () => {
   const [excelFile, setExcelFile] = useState(null); 
   const [penaltyExcelFile, setPenaltyExcelFile] = useState(null);
 
-  // 🆕 ميزات إضافية: العداد والوميض (هذه هي الإضافة الوحيدة)
+  // 🆕 ميزات إضافية: العداد والوميض
   const [deadlineData, setDeadlineData] = useState(null);
   const [timeLeft, setTimeLeft] = useState('');
   const [needsLineupUpdate, setNeedsLineupUpdate] = useState(false);
@@ -80,7 +80,11 @@ const Dashboard = () => {
         } else {
             setNeedsLineupUpdate(false);
         }
-    } catch (err) { setNeedsLineupUpdate(false); }
+    } catch (err) { 
+        if (err.response && err.response.status === 404) {
+            setNeedsLineupUpdate(true);
+        }
+    }
   };
 
   useEffect(() => {
@@ -424,11 +428,11 @@ const Dashboard = () => {
   };
 
   return (
-    <div style={{ padding: '40px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }}>
+    <div className="dashboard-container" style={{ padding: '40px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }}>
       
-      {/* 🆕 1. عداد الديدلاين العام (إضافة) */}
+      {/* ⏳ 1. عداد الديدلاين العام (إضافة) */}
       {deadlineData && (
-          <div style={{ 
+          <div className="deadline-banner-style" style={{ 
               background: '#38003c', color: '#00ff85', padding: '15px', borderRadius: '12px', 
               marginBottom: '20px', textAlign: 'center', fontWeight: 'bold', fontSize: '20px',
               boxShadow: '0 5px 15px rgba(56,0,60,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' 
@@ -440,7 +444,7 @@ const Dashboard = () => {
           </div>
       )}
 
-      {/* 🆕 2. الإشعار الوامض للمناجير (إضافة) */}
+      {/* 🚨 2. الإشعار الوامض للمناجير (إضافة) */}
       {needsLineupUpdate && (
           <div className="blink-notice">
               ⚠️ تنبيه: لم يتم حفظ تشكيلة الجولة القادمة يدوياً! سارع بالدخول لغرفة التبديل لتجنب العقوبات.
@@ -506,7 +510,7 @@ const Dashboard = () => {
       {user.role === 'admin' && (
         <div style={{ backgroundColor: '#f3e5f5', padding: '20px', borderRadius: '10px', marginBottom: '40px', border: '1px solid #ce93d8' }}>
           <h2 style={{ marginTop: 0, color: '#38003c' }}>🛠 أدوات الإدارة</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div className="admin-grid-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               
              <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
               <h3 style={{marginTop:0, color:'#38003c'}}>1. إعدادات ومشاركة البطولة</h3>
@@ -620,34 +624,25 @@ const Dashboard = () => {
 
       <div>
         <h2 style={{ color: '#38003c', borderBottom: '2px solid #38003c', paddingBottom: '10px', display: 'inline-block' }}>⚽ مسيرتي الكروية</h2>
-        {(league || user.leagueId) ? (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
-                <button onClick={() => window.location.href = '/fixtures'} style={{ padding: '15px 30px', fontSize: '18px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaCalendarAlt size={24} /> المباريات</button>
-                <button onClick={() => window.location.href = '/standings'} style={{ padding: '15px 30px', fontSize: '18px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaTrophy size={24} /> الترتيب</button>
-                <button onClick={() => window.location.href = '/stats'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaChartBar size={24} /> إحصائيات الفرق</button>
-                <button onClick={() => window.location.href = '/player-stats'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaRunning size={24} /> ترتيب الهدافين</button>
-                {user.role === 'admin' && (
-                    <button onClick={() => window.location.href = '/managers'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaUsers size={24} /> المشاركون</button>
-                )}
-                <button onClick={() => window.location.href = '/awards'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaTrophy size={24} /> الجوائز والفورمة</button>
-            </div>
-        ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginTop: '20px' }}>
-                <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px' }}>
-                    <h3>1. الانضمام لبطولة</h3>
-                    <input type="text" placeholder="كود البطولة" value={leagueCode} onChange={(e) => setLeagueCode(e.target.value)} style={{ padding: '8px', width: '60%', marginLeft: '10px' }} />
-                    <button onClick={handleJoinLeague} style={{ padding: '8px 15px', backgroundColor: '#38003c', color: 'white', border: 'none' }}>انضمام</button>
-                </div>
-            </div>
-        )}
+        <div className="career-buttons-container" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
+            <button onClick={() => window.location.href = '/fixtures'} style={{ padding: '15px 30px', fontSize: '18px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaCalendarAlt size={24} /> المباريات</button>
+            <button onClick={() => window.location.href = '/standings'} style={{ padding: '15px 30px', fontSize: '18px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaTrophy size={24} /> الترتيب</button>
+            <button onClick={() => window.location.href = '/stats'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaChartBar size={24} /> إحصائيات الفرق</button>
+            <button onClick={() => window.location.href = '/player-stats'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaRunning size={24} /> ترتيب الهدافين</button>
+            {user.role === 'admin' && (
+                <button onClick={() => window.location.href = '/managers'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaUsers size={24} /> المشاركون</button>
+            )}
+            <button onClick={() => window.location.href = '/awards'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaTrophy size={24} /> الجوائز والفورمة</button>
+        </div>
+      </div>
 
-        {(league || user.leagueId) && (
+      {(league || user.leagueId) && (
             <div style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
                 {!user.teamId ? (
                     <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
                         <h3 style={{marginBottom:'20px'}}>2. إنشاء أو الانضمام لفريق</h3>
                         {!selectionMode && (
-                            <div style={{ display:'flex', gap:'20px', justifyContent:'center' }}>
+                            <div style={{ display:'flex', gap:'20px', justifyContent:'center', flexWrap: 'wrap' }}>
                                 <button onClick={() => { setSelectionMode('create'); fetchLeagueTeams(); }} style={{ padding:'15px 30px', background:'#38003c', color:'white', border:'none', borderRadius:'10px', cursor:'pointer', fontSize:'16px', fontWeight:'bold', display:'flex', flexDirection:'column', alignItems:'center', gap:'10px' }}>
                                     <FaUserTie size={30} /> <span>أنا مناجير (إنشاء فريق)</span>
                                 </button>
@@ -726,12 +721,11 @@ const Dashboard = () => {
                 )}
             </div>
         )}
-      </div>
 
       {/* Modal */}
       {showSubModal && myTeamData && (
           <div style={{position:'fixed', top:0, left:0, width:'100%', height:'100%', background:'rgba(0,0,0,0.5)', display:'flex', justifyContent:'center', alignItems:'center', zIndex:1000}}>
-              <div style={{background:'white', padding:'30px', borderRadius:'15px', width:'450px', textAlign:'center'}}>
+              <div style={{background:'white', padding:'30px', borderRadius:'15px', width:'90%', maxWidth:'450px', textAlign:'center'}}>
                   <h3 style={{marginTop:0, color:'#38003c', borderBottom:'1px solid #eee', paddingBottom:'10px'}}>إدارة أعضاء الفريق</h3>
                   <div style={{display:'flex', flexDirection:'column', gap:'10px', marginTop:'10px'}}>
                       {myTeamData.members?.filter(m => m._id !== user._id).map(member => (
@@ -779,13 +773,16 @@ const Dashboard = () => {
             60% {transform: translateY(-8px);}
         }
 
-        /* 📱 تحسينات الهاتف الذكية فقط (بدون تغيير الهيكل) */
+        /* 📱 التوافق مع الهاتف دون تغيير الـ JSX */
         @media (max-width: 768px) {
-            header { flex-direction: column; align-items: center !important; text-align: center; }
-            .career-buttons-container { gap: 10px !important; }
-            /* جعل الأزرار تأخذ نصف الشاشة في الهاتف لكي لا تخرج عن الإطار */
-            .career-buttons-container button { width: calc(50% - 15px) !important; padding: 10px !important; font-size: 14px !important; }
+            .dashboard-container { padding: 15px !important; }
+            header { flex-direction: column !important; text-align: center; gap: 20px; }
             .admin-grid-layout { grid-template-columns: 1fr !important; }
+            .career-buttons-container { gap: 10px !important; }
+            .career-buttons-container button { width: 100% !important; padding: 15px !important; }
+            .deadline-banner-style { font-size: 14px !important; flex-direction: column; gap: 5px !important; }
+            .deadline-banner-style span { font-size: 18px !important; }
+            .blink-notice { font-size: 14px !important; padding: 12px !important; }
         }
       `}</style>
     </div>
