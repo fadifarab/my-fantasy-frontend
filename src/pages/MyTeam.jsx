@@ -185,22 +185,22 @@ const MyTeam = () => {
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', direction: 'rtl', backgroundColor: '#eef1f5', minHeight: '100vh' }}>
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', direction: 'rtl', backgroundColor: '#eef1f5', minHeight: '100vh' }} className="my-team-container">
       
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', backgroundColor: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', backgroundColor: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }} className="header-box">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }} className="header-right">
              <button onClick={() => navigate('/dashboard')} style={{ padding: '8px 15px', cursor:'pointer', border:'1px solid #ddd', borderRadius:'8px', background:'white', fontWeight:'bold' }}>⬅ عودة</button>
-             <div>
+             <div className="team-info-header">
                 <h1 style={{ margin: 0, color: '#37003c', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '24px' }}>
                     <img src={team.logoUrl} alt="Logo" style={{ width: '45px', height: '45px', objectFit: 'contain' }} />
                     {team.name}
                 </h1>
-                <small style={{color: '#666', marginRight: '55px'}}>المدير: {isManager ? 'أنت 👑' : (team.managerId.username || 'المناجير')}</small>
+                <small style={{color: '#666', marginRight: '55px'}} className="manager-name">المدير: {isManager ? 'أنت 👑' : (team.managerId.username || 'المناجير')}</small>
              </div>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }} className="header-left">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#38003c', color: '#00ff85', padding: '5px 12px', borderRadius: '8px', border: '1px solid #00ff85' }}>
                 <FaCalendarCheck />
                 <select value={selectedGW} onChange={(e) => { const v = parseInt(e.target.value); setSelectedGW(v); fetchTeamForGW(v); }}
@@ -216,7 +216,7 @@ const MyTeam = () => {
                 color: !isEditable ? '#c62828' : '#0d47a1', 
                 padding: '8px 15px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px',
                 display: 'flex', alignItems: 'center', gap: '8px', border: `1px solid ${!isEditable ? '#ef9a9a' : '#90caf9'}`
-            }}>
+            }} className="deadline-box">
                 {!isEditable ? <FaLock /> : <FaClock />}
                 <span>{timeLeft}</span>
             </div>
@@ -225,17 +225,17 @@ const MyTeam = () => {
       
       {message && <div style={{ padding: '10px 20px', marginBottom: '20px', borderRadius: '8px', fontWeight:'bold', backgroundColor: message.includes('✅') ? '#e8f5e9' : '#fff3e0', color: message.includes('✅') ? 'green' : '#e65100', textAlign:'center', border: `1px solid ${message.includes('✅') ? 'green' : '#ffcc80'}` }}>{message}</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: '25px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr', gap: '25px' }} className="main-grid">
         
         {/* الملعب المخطط بالكامل */}
-        <div>
+        <div className="pitch-area">
             {isManager && (
-                <div style={{ marginBottom: '15px', backgroundColor: 'white', padding: '12px', borderRadius: '12px', display:'flex', gap:'10px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }}>
+                <div style={{ marginBottom: '15px', backgroundColor: 'white', padding: '12px', borderRadius: '12px', display:'flex', gap:'10px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', overflowX: 'auto' }} className="chips-container">
                     {['none', 'tripleCaptain', 'benchBoost', 'freeHit'].map(chip => (
                         <button key={chip} onClick={() => isEditable && setActiveChip(chip)} 
                             style={{ 
                                 padding: '8px 15px', borderRadius: '20px', border: '1px solid #ddd', cursor: isEditable ? 'pointer' : 'not-allowed', fontWeight: 'bold', fontSize: '12px',
-                                backgroundColor: activeChip === chip ? '#00ff87' : '#f5f5f5', color: activeChip === chip ? '#37003c' : '#555', opacity: isEditable ? 1 : 0.6
+                                backgroundColor: activeChip === chip ? '#00ff87' : '#f5f5f5', color: activeChip === chip ? '#37003c' : '#555', opacity: isEditable ? 1 : 0.6, whiteSpace: 'nowrap'
                             }}>
                             {chip.toUpperCase()}
                         </button>
@@ -246,7 +246,7 @@ const MyTeam = () => {
             <div style={{ 
                 position: 'relative', borderRadius: '15px', overflow: 'hidden', minHeight: '650px', border: '4px solid #fff', boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
                 background: `repeating-linear-gradient(0deg, #419d36, #419d36 50px, #4caf50 50px, #4caf50 100px)` 
-            }}>
+            }} className="actual-pitch">
                 {/* ⚽ تخطيط الملعب الاحترافي */}
                 <div style={{ position: 'absolute', top: '10px', left: '10px', right: '10px', bottom: '10px', border: '2px solid rgba(255,255,255,0.4)', pointerEvents: 'none' }}></div>
                 <div style={{ position: 'absolute', top: '50%', left: '10px', right: '10px', height: '2px', backgroundColor: 'rgba(255,255,255,0.4)', pointerEvents: 'none' }}></div>
@@ -255,9 +255,9 @@ const MyTeam = () => {
                 <div style={{ position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', width: '280px', height: '90px', border: '2px solid rgba(255,255,255,0.4)', borderBottom: 'none', pointerEvents: 'none' }}></div>
 
                 <div style={{ position: 'relative', zIndex: 2, height: '650px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '45px', flexWrap: 'wrap', width: '100%', padding:'20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '45px', flexWrap: 'wrap', width: '100%', padding:'20px' }} className="players-wrap">
                     {starters.map(player => (
-                        <div key={player.userId} style={{ textAlign: 'center', position: 'relative', width: '110px' }}>
+                        <div key={player.userId} style={{ textAlign: 'center', position: 'relative', width: '110px' }} className="player-slot">
                             <div style={{ position: 'relative', display: 'inline-block' }}>
                                 <KitImage size={85} /> 
                                 {player.isCaptain && <FaCrown size={26} color="#ffd700" style={{ position: 'absolute', top: '-15px', right: '-12px', zIndex: 10 }} />}
@@ -275,14 +275,14 @@ const MyTeam = () => {
                 </div>
             </div>
             {isManager && isEditable && (
-                <button onClick={handleSaveLineup} style={{ width: '100%', padding: '18px', marginTop: '20px', backgroundColor: '#00ff85', color: '#37003c', border: 'none', borderRadius: '12px', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 6px 15px rgba(0,255,133,0.3)' }}>
+                <button onClick={handleSaveLineup} style={{ width: '100%', padding: '18px', marginTop: '20px', backgroundColor: '#00ff85', color: '#37003c', border: 'none', borderRadius: '12px', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 6px 15px rgba(0,255,133,0.3)' }} className="save-btn">
                     <FaCheck /> حفظ تشكيلة الجولة {selectedGW}
                 </button>
             )}
         </div>
 
         {/* دكة الاحتياط */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }} className="bench-area">
             <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                 <h3 style={{ margin: '0 0 15px 0', borderBottom: '2px solid #f0f0f0', paddingBottom: '10px', color: '#37003c' }}>🛋 دكة الاحتياط</h3>
                 {bench.map(player => (
@@ -299,6 +299,24 @@ const MyTeam = () => {
             </div>
         </div>
       </div>
+
+      <style>{`
+        /* 📱 Mobile Responsiveness (Pure CSS Additions) */
+        @media (max-width: 768px) {
+            .my-team-container { padding: 10px !important; }
+            .header-box { flex-direction: column !important; gap: 15px; align-items: flex-start !important; }
+            .header-left { width: 100%; justify-content: space-between; }
+            .main-grid { grid-template-columns: 1fr !important; gap: 15px !important; }
+            .actual-pitch { min-height: 500px !important; }
+            .actual-pitch > div { height: 500px !important; }
+            .players-wrap { gap: 15px !important; padding: 10px !important; }
+            .player-slot { width: 80px !important; }
+            .player-slot img { width: 60px !important; height: 60px !important; }
+            .save-btn { font-size: 16px !important; padding: 15px !important; }
+            .team-info-header h1 { font-size: 18px !important; }
+            .deadline-box { font-size: 11px !important; padding: 5px 10px !important; }
+        }
+      `}</style>
     </div>
   );
 };
