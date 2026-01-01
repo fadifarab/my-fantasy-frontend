@@ -12,7 +12,6 @@ const MyTeam = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // --- منطق اكتشاف نوع الشاشة ---
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -37,8 +36,9 @@ const MyTeam = () => {
         const { data: status } = await API.get('/gameweek/status');
         if (status) {
           setCurrentGW(status.id);
-          setSelectedGW(status.id);
-          await fetchTeamForGW(status.id);
+          const nextGw = status.id + 1;
+          setSelectedGW(nextGw <= 38 ? nextGw : status.id);
+          await fetchTeamForGW(nextGw <= 38 ? nextGw : status.id);
         }
       } catch (error) {
         console.error("خطأ:", error);
@@ -79,7 +79,7 @@ const MyTeam = () => {
 
         setLineup(initialLineup);
         setActiveChip(data.activeChip || 'none');
-        if (data.isInherited) setMessage('📋 تشكيلة موروثة. اضغط حفظ لتثبيتها.');
+        if (data.isInherited) setMessage('📋 هذه تشكيلة موروثة. قم بالتعديل والحفظ للجولة القادمة.');
         else setMessage('');
       }
       setLoading(false);
@@ -88,16 +88,20 @@ const MyTeam = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (!deadline) {
-        setTimeLeft(selectedGW >= currentGW ? 'الجولة مفتوحة 🟢' : 'منتهية');
-        setIsEditable(selectedGW >= currentGW);
-        return;
-      }
+      if (!deadline || currentGW === null) return;
+
       const now = new Date();
       const diff = deadline - now;
-      setIsEditable((selectedGW === currentGW && diff > 0) || (selectedGW > currentGW));
-      if (diff <= 0) setTimeLeft(selectedGW === currentGW ? 'انتهى الوقت! ⛔' : 'مغلقة');
-      else {
+      const isNextGW = selectedGW === (currentGW + 1);
+      const timeRemaining = diff > 0;
+      
+      setIsEditable(isNextGW && timeRemaining);
+
+      if (!isNextGW) {
+        setTimeLeft(selectedGW <= currentGW ? 'انتهت' : 'مغلقة (للمعاينة)');
+      } else if (!timeRemaining) {
+        setTimeLeft('انتهى الوقت! ⛔');
+      } else {
         const d = Math.floor(diff / 86400000);
         const h = Math.floor((diff % 86400000) / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
@@ -109,12 +113,17 @@ const MyTeam = () => {
   }, [deadline, selectedGW, currentGW]);
 
   const toggleStarter = (id) => {
-    if (!isEditable) return;
+    // إضافة رسالة توضيحية عند محاولة التعديل في جولة غير مسموح بها
+    if (!isEditable) {
+        setMessage(`⚠️ التعديل مسموح فقط للجولة رقم ${currentGW + 1}`);
+        setTimeout(() => setMessage(''), 3000);
+        return;
+    }
     const startersCount = Object.values(lineup).filter(p => p.isStarter).length;
     setLineup(prev => {
       const p = prev[id];
       if (!p.isStarter && startersCount >= 3) {
-        setMessage('خطأ: 3 لاعبين أساسيين فقط!');
+        setMessage('خطأ: يمكنك إشراك 3 لاعبين فقط!');
         return prev;
       }
       return { ...prev, [id]: { ...p, isStarter: !p.isStarter, isCaptain: p.isStarter ? false : p.isCaptain } };
@@ -130,13 +139,18 @@ const MyTeam = () => {
   };
 
   const handleSaveLineup = async () => {
-    if (!isEditable) return;
+    if (selectedGW !== (currentGW + 1)) {
+        setMessage(`⛔ لا يمكنك الحفظ إلا للجولة القادمة (${currentGW + 1}) فقط.`);
+        return;
+    }
+
     const startersCount = Object.values(lineup).filter(p => p.isStarter).length;
     if (startersCount !== 3) {
         setMessage(`⛔ يجب اختيار 3 لاعبين فقط. (اخترت ${startersCount})`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
     }
+
     try {
       const playersArray = Object.values(lineup).map(p => ({ userId: p.userId, isStarter: p.isStarter, isCaptain: p.isCaptain }));
       const { data } = await API.post('/gameweek/lineup', { players: playersArray, activeChip, gw: selectedGW });
@@ -157,7 +171,7 @@ const MyTeam = () => {
     return (
       <div style={{ position: 'relative', width: size, height: size, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <img src={kitSrc} alt="Kit" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 5px 5px rgba(0,0,0,0.5))' }}
-             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+               onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
         <FaTshirt size={size} color="#f0f0f0" style={{ display: 'none' }} />
       </div>
     );
@@ -167,7 +181,7 @@ const MyTeam = () => {
     <div style={{ padding: isMobile ? '10px' : '20px', fontFamily: 'Arial', direction: 'rtl', backgroundColor: '#eef1f5', minHeight: '100vh' }}>
       
       {/* Header */}
-      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', marginBottom: '15px', backgroundColor: 'white', padding: '12px', borderRadius: '12px', gap: '10px' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', marginBottom: '10px', backgroundColor: 'white', padding: '12px', borderRadius: '12px', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
              <button onClick={() => navigate('/dashboard')} style={{ padding: '6px 12px', cursor:'pointer', border:'1px solid #ddd', borderRadius:'8px', background:'white' }}>⬅</button>
              <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
@@ -187,6 +201,26 @@ const MyTeam = () => {
                 {!isEditable ? <FaLock /> : <FaClock />} {timeLeft}
             </div>
         </div>
+      </div>
+
+      {/* رسالة حالة الجولة التوضيحية */}
+      <div style={{ 
+          marginBottom: '15px', 
+          padding: '10px', 
+          borderRadius: '10px', 
+          backgroundColor: selectedGW === (currentGW + 1) ? '#e8f5e9' : '#fff3e0',
+          color: selectedGW === (currentGW + 1) ? '#2e7d32' : '#e65100',
+          fontSize: '13px',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          border: `1px solid ${selectedGW === (currentGW + 1) ? '#a5d6a7' : '#ffcc80'}`
+      }}>
+          {selectedGW === (currentGW + 1) 
+              ? `✅ الجولة ${selectedGW} مفتوحة للتعديل والحفظ.`
+              : selectedGW <= currentGW 
+                  ? `⛔ الجولة ${selectedGW} انتهت (للمعاينة فقط).`
+                  : `⏳ الجولة ${selectedGW} مغلقة حالياً (الحفظ متاح للجولة ${currentGW + 1} فقط).`
+          }
       </div>
       
       {message && <div style={{ padding: '10px', marginBottom: '15px', borderRadius: '8px', fontWeight:'bold', fontSize:'13px', backgroundColor: message.includes('✅') ? '#e8f5e9' : '#fff3e0', color: message.includes('✅') ? 'green' : '#e65100', textAlign:'center' }}>{message}</div>}
@@ -236,9 +270,25 @@ const MyTeam = () => {
                 </div>
             </div>
             
-            {isManager && isEditable && (
-                <button onClick={handleSaveLineup} style={{ width: '100%', padding: '15px', marginTop: '15px', backgroundColor: '#00ff85', color: '#37003c', border: 'none', borderRadius: '10px', fontSize: '18px', fontWeight: 'bold' }}>
-                    حفظ تشكيلة GW {selectedGW}
+            {isManager && (
+                <button 
+                    onClick={handleSaveLineup} 
+                    disabled={!isEditable}
+                    style={{ 
+                        width: '100%', 
+                        padding: '15px', 
+                        marginTop: '15px', 
+                        backgroundColor: isEditable ? '#00ff85' : '#bdbdbd', 
+                        color: isEditable ? '#37003c' : '#757575', 
+                        border: 'none', 
+                        borderRadius: '10px', 
+                        fontSize: '18px', 
+                        fontWeight: 'bold',
+                        cursor: isEditable ? 'pointer' : 'not-allowed',
+                        boxShadow: isEditable ? '0 4px 12px rgba(0,255,133,0.3)' : 'none'
+                    }}
+                >
+                    {selectedGW === (currentGW + 1) ? `حفظ تشكيلة الجولة ${selectedGW}` : `🔒 الحفظ متاح للجولة ${currentGW + 1} فقط`}
                 </button>
             )}
         </div>

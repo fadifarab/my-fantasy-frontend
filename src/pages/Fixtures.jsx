@@ -2,7 +2,10 @@ import { useState, useEffect, useContext } from 'react';
 import API from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaInfoCircle } from "react-icons/fa";
+import { 
+    FaCalendarAlt, FaChevronLeft, FaChevronRight, FaInfoCircle, 
+    FaClock, FaCheckCircle 
+} from "react-icons/fa";
 
 const Fixtures = () => {
   const { user } = useContext(AuthContext);
@@ -11,7 +14,6 @@ const Fixtures = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // اكتشاف حجم الشاشة لضبط التنسيقات المتجاوبة
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -58,77 +60,114 @@ const Fixtures = () => {
   if (currentGw === null) return <div style={{textAlign:'center', padding:'100px'}}>جاري التحميل... ⚽</div>;
 
   return (
-    <div style={{ padding: isMobile ? '10px' : '20px', fontFamily: 'Arial, sans-serif', direction: 'rtl', backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{ padding: isMobile ? '10px' : '20px', fontFamily: 'Arial, sans-serif', direction: 'rtl', backgroundColor: '#f4f7f6', minHeight: '100vh' }}>
       
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', gap: '10px' }}>
-          <button onClick={() => navigate('/dashboard')} style={{ padding: '8px 12px', cursor:'pointer', border:'none', borderRadius:'8px', background:'white', fontSize: isMobile ? '12px' : '14px', fontWeight: 'bold', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>⬅ عودة</button>
-          <h2 style={{ margin: 0, color: '#38003c', display:'flex', alignItems:'center', gap:'8px', fontSize: isMobile ? '18px' : '24px' }}>
-              <FaCalendarAlt /> جدول المباريات
+      {/* Header المطور */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <button onClick={() => navigate('/dashboard')} style={{ padding: '8px 15px', cursor:'pointer', border:'none', borderRadius:'10px', background:'#38003c', color:'white', fontSize: '13px', fontWeight: 'bold', boxShadow: '0 4px 10px rgba(56,0,60,0.2)' }}>⬅ رجوع</button>
+          <h2 style={{ margin: 0, color: '#38003c', display:'flex', alignItems:'center', gap:'8px', fontSize: isMobile ? '18px' : '22px' }}>
+              <FaCalendarAlt color="#00ff85" /> المباريات
           </h2>
       </div>
 
-      {/* Gameweek Selector */}
+      {/* Selector المطور */}
       <div style={{ 
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-          marginBottom: '20px', backgroundColor: 'white', padding: '10px 15px', borderRadius: '15px', 
-          maxWidth: isMobile ? '100%' : '400px', margin: '0 auto 20px auto', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' 
+          marginBottom: '20px', backgroundColor: '#38003c', padding: '12px 20px', borderRadius: '15px', 
+          maxWidth: isMobile ? '100%' : '450px', margin: '0 auto 20px auto', boxShadow: '0 8px 20px rgba(0,0,0,0.15)' 
       }}>
-          <button onClick={() => changeGw('prev')} disabled={currentGw <= 1} style={{ background: '#f5f5f5', border: 'none', padding: '10px', borderRadius: '50%', cursor: 'pointer', display:'flex' }}><FaChevronRight /></button>
-          <h3 style={{ margin: 0, color: '#38003c', fontSize: isMobile ? '16px' : '20px', fontWeight: '900' }}>الجولة {currentGw}</h3>
-          <button onClick={() => changeGw('next')} disabled={currentGw >= 38} style={{ background: '#f5f5f5', border: 'none', padding: '10px', borderRadius: '50%', cursor: 'pointer', display:'flex' }}><FaChevronLeft /></button>
+          <button onClick={() => changeGw('prev')} disabled={currentGw <= 1} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color:'white', padding: '10px', borderRadius: '50%', cursor: 'pointer', display:'flex' }}><FaChevronRight /></button>
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ color: '#00ff85', fontSize: '10px', display: 'block', fontWeight: 'bold', letterSpacing: '1px' }}>GAMEWEEK</span>
+            <h3 style={{ margin: 0, color: 'white', fontSize: '20px', fontWeight: '900' }}>{currentGw}</h3>
+          </div>
+          <button onClick={() => changeGw('next')} disabled={currentGw >= 38} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color:'white', padding: '10px', borderRadius: '50%', cursor: 'pointer', display:'flex' }}><FaChevronLeft /></button>
       </div>
 
-      {/* Fixtures List */}
-      <div style={{ maxWidth: '800px', margin: '0 auto', display: 'grid', gap: '12px' }}>
+      {/* قائمة المباريات المطورة */}
+      <div style={{ maxWidth: '600px', margin: '0 auto', display: 'grid', gap: '15px' }}>
           {loading ? (
-              <div style={{ textAlign: 'center', padding: '20px' }}>جاري جلب النتائج... ⏳</div>
+              <div style={{ textAlign: 'center', padding: '20px', color: '#38003c', fontWeight: 'bold' }}>جاري جلب النتائج... ⏳</div>
           ) : fixtures.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', backgroundColor: 'white', borderRadius: '10px', color: '#888', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-                  <FaInfoCircle size={30} color="#ccc" />
-                  <p>لا توجد مباريات مجدولة لهذه الجولة.</p>
+              <div style={{ textAlign: 'center', padding: '40px', backgroundColor: 'white', borderRadius: '20px', color: '#888', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+                  <FaInfoCircle size={40} color="#ddd" style={{ marginBottom: '10px' }} />
+                  <p style={{ fontWeight: 'bold' }}>لا توجد مباريات مجدولة لهذه الجولة.</p>
               </div>
           ) : (
               fixtures.map((match, index) => (
                   <div key={index} onClick={() => navigate(`/match/${match._id}`)} style={{ 
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                      backgroundColor: 'white', padding: isMobile ? '15px 10px' : '20px', 
-                      borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', 
-                      borderRight: match.isFinished ? '6px solid #00ff85' : '6px solid #38003c', 
+                      backgroundColor: 'white', 
+                      borderRadius: '18px', 
+                      overflow: 'hidden',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
                       cursor: 'pointer',
-                      transition: 'transform 0.2s'
+                      border: '1px solid #eee'
                   }}>
-                      {/* Home Team */}
-                      <div style={{ flex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                          <img src={match.homeTeamId?.logoUrl} alt="home" style={{ width: isMobile ? '45px' : '65px', height: isMobile ? '45px' : '65px', objectFit: 'contain' }} />
-                          <span style={{ fontWeight: 'bold', fontSize: isMobile ? '11px' : '15px', color: '#333', lineHeight: '1.2' }}>
-                              {match.homeTeamId?.name}
-                          </span>
+                      {/* شريط حالة المباراة العلوي */}
+                      <div style={{ 
+                        backgroundColor: match.isFinished ? '#f8f9fa' : '#fff9e6', 
+                        padding: '5px 15px', 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center', 
+                        gap: '5px',
+                        borderBottom: '1px solid #eee'
+                      }}>
+                        {match.isFinished ? (
+                          <><FaCheckCircle size={10} color="#00ff85" /> <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#666' }}>انتهت المباراة</span></>
+                        ) : (
+                          <><FaClock size={10} color="#ffc107" /> <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#666' }}>لم تبدأ بعد</span></>
+                        )}
                       </div>
 
-                      {/* النتيجة المحسنة للهاتف */}
-                      <div style={{ flex: 0.8, textAlign: 'center', display:'flex', flexDirection:'column', alignItems:'center' }}>
-                          {match.isFinished ? (
-                              <div style={{ 
-                                  fontSize: isMobile ? '16px' : '22px', fontWeight: '900', color: '#38003c', 
-                                  backgroundColor: '#00ff85', padding: isMobile ? '5px 10px' : '8px 18px', 
-                                  borderRadius: '6px', fontFamily: 'monospace', minWidth: isMobile ? '55px' : '80px',
-                                  boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.1)'
-                              }}>
-                                  {match.homeScore} - {match.awayScore}
-                              </div>
-                          ) : (
-                              <div style={{ backgroundColor: '#38003c', color: 'white', padding: '5px 15px', borderRadius: '20px', fontWeight: 'bold', fontSize: isMobile ? '11px' : '14px', letterSpacing: '1px' }}>VS</div>
-                          )}
-                          <span style={{ display:'block', marginTop:'8px', color:'#999', fontSize:'10px', fontWeight:'bold' }}>التفاصيل</span>
-                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 10px' }}>
+                          {/* Home Team */}
+                          <div style={{ flex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              <img src={match.homeTeamId?.logoUrl} alt="home" style={{ width: isMobile ? '45px' : '55px', height: isMobile ? '45px' : '55px', objectFit: 'contain', marginBottom: '8px' }} />
+                              <span style={{ fontWeight: '800', fontSize: isMobile ? '12px' : '14px', color: '#333' }}>
+                                  {match.homeTeamId?.name}
+                              </span>
+                          </div>
 
-                      {/* Away Team */}
-                      <div style={{ flex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                          <img src={match.awayTeamId?.logoUrl} alt="away" style={{ width: isMobile ? '45px' : '65px', height: isMobile ? '45px' : '65px', objectFit: 'contain' }} />
-                          <span style={{ fontWeight: 'bold', fontSize: isMobile ? '11px' : '15px', color: '#333', lineHeight: '1.2' }}>
-                              {match.awayTeamId?.name}
-                          </span>
+                          {/* النتيجة الاحترافية */}
+                          <div style={{ flex: 0.7, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              {match.isFinished ? (
+                                  <div style={{ 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      gap: '4px',
+                                      backgroundColor: '#38003c', 
+                                      padding: '6px 14px', 
+                                      borderRadius: '10px', 
+                                      color: '#00ff85',
+                                      fontSize: '22px', 
+                                      fontWeight: '900',
+                                      fontFamily: 'monospace',
+                                      boxShadow: '0 4px 10px rgba(56,0,60,0.2)'
+                                  }}>
+                                      {match.homeScore}<span style={{color:'white', opacity:0.3, fontSize:'14px'}}>:</span>{match.awayScore}
+                                  </div>
+                              ) : (
+                                  <div style={{ 
+                                      backgroundColor: '#f0f0f0', 
+                                      color: '#38003c', 
+                                      padding: '5px 15px', 
+                                      borderRadius: '12px', 
+                                      fontWeight: '900', 
+                                      fontSize: '12px',
+                                      border: '1px solid #ddd'
+                                  }}>VS</div>
+                              )}
+                              <span style={{ marginTop: '8px', color: '#00ff85', fontSize: '9px', fontWeight: 'bold', backgroundColor: '#38003c', padding: '2px 8px', borderRadius: '4px' }}>التفاصيل ⮕</span>
+                          </div>
+
+                          {/* Away Team */}
+                          <div style={{ flex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              <img src={match.awayTeamId?.logoUrl} alt="away" style={{ width: isMobile ? '45px' : '55px', height: isMobile ? '45px' : '55px', objectFit: 'contain', marginBottom: '8px' }} />
+                              <span style={{ fontWeight: '800', fontSize: isMobile ? '12px' : '14px', color: '#333' }}>
+                                  {match.awayTeamId?.name}
+                              </span>
+                          </div>
                       </div>
                   </div>
               ))
