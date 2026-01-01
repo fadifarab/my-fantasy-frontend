@@ -45,7 +45,8 @@ const Dashboard = () => {
   const [needsLineupUpdate, setNeedsLineupUpdate] = useState(false);
 
   const isLeagueCreator = league && league.adminId === user._id;
-  const SERVER_URL = 'http://localhost:5000'; 
+  // 🛠 إصلاح SERVER_URL لضمان عمل اللوغو على كل البيئات
+  const SERVER_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : ''; 
 
   useEffect(() => {
     fetchPLTeams();
@@ -62,7 +63,7 @@ const Dashboard = () => {
     if (user.leagueId) fetchLeagueTeams();
   }, [user]);
 
-  // دالة العداد والإشعار (إضافة برمجية فقط)
+  // دالة العداد والإشعار (إضافة برمجية)
   const fetchDeadlineStatus = async () => {
     try {
         const { data } = await API.get('/gameweek/status');
@@ -430,7 +431,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container" style={{ padding: '40px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }}>
       
-      {/* ⏳ 1. عداد الديدلاين العام (إضافة) */}
+      {/* ⏳ 1. عداد الديدلاين العام (يظهر للجميع) */}
       {deadlineData && (
           <div className="deadline-banner-style" style={{ 
               background: '#38003c', color: '#00ff85', padding: '15px', borderRadius: '12px', 
@@ -444,7 +445,7 @@ const Dashboard = () => {
           </div>
       )}
 
-      {/* 🚨 2. الإشعار الوامض للمناجير (إضافة) */}
+      {/* 🚨 2. الإشعار الوامض للمناجير (فقط إذا لم يتم حفظ التشكيلة) */}
       {needsLineupUpdate && (
           <div className="blink-notice">
               ⚠️ تنبيه: لم يتم حفظ تشكيلة الجولة القادمة يدوياً! سارع بالدخول لغرفة التبديل لتجنب العقوبات.
@@ -454,12 +455,15 @@ const Dashboard = () => {
       <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', borderBottom: '1px solid #ddd', paddingBottom: '20px' }}>
         <div>
             <div style={{display:'flex', alignItems:'center', gap:'15px'}}>
+                {/* 🛡️ إصلاح اللوغو: إضافة minWidth ومنع التقلص لضمان ظهوره على الهاتف */}
                 {league?.logoUrl && (
-                    <img 
-                        src={`${SERVER_URL}${league.logoUrl}`} 
-                        alt="League Logo" 
-                        style={{width:'60px', height:'60px', objectFit:'contain', borderRadius:'50%', border:'2px solid #38003c', backgroundColor: 'white'}} 
-                    />
+                    <div style={{ minWidth: '60px', width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #38003c', background: '#fff' }}>
+                        <img 
+                            src={`${SERVER_URL}${league.logoUrl}`} 
+                            alt="League Logo" 
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+                        />
+                    </div>
                 )}
                 <div>
                     <h1 style={{ margin: 0 }}>لوحة التحكم 📱</h1>
@@ -472,7 +476,7 @@ const Dashboard = () => {
                 </div>
             </div>
         </div>
-        <button onClick={logout} style={{ backgroundColor: '#ff4d4d', color: 'white', border: 'none', padding: '10px 20px', cursor: 'pointer', height: '40px' }}>تسجيل خروج</button>
+        <button onClick={logout} style={{ backgroundColor: '#ff4d4d', color: 'white', border: 'none', padding: '10px 20px', cursor: 'pointer', height: '40px', borderRadius: '8px' }}>تسجيل خروج</button>
       </header>
 
       {message && <div style={{ backgroundColor: '#e0f7fa', padding: '15px', marginBottom: '20px', borderRadius: '5px', color: '#006064' }}>{message}</div>}
@@ -624,19 +628,28 @@ const Dashboard = () => {
 
       <div>
         <h2 style={{ color: '#38003c', borderBottom: '2px solid #38003c', paddingBottom: '10px', display: 'inline-block' }}>⚽ مسيرتي الكروية</h2>
-        <div className="career-buttons-container" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
-            <button onClick={() => window.location.href = '/fixtures'} style={{ padding: '15px 30px', fontSize: '18px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaCalendarAlt size={24} /> المباريات</button>
-            <button onClick={() => window.location.href = '/standings'} style={{ padding: '15px 30px', fontSize: '18px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaTrophy size={24} /> الترتيب</button>
-            <button onClick={() => window.location.href = '/stats'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaChartBar size={24} /> إحصائيات الفرق</button>
-            <button onClick={() => window.location.href = '/player-stats'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaRunning size={24} /> ترتيب الهدافين</button>
-            {user.role === 'admin' && (
-                <button onClick={() => window.location.href = '/managers'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaUsers size={24} /> المشاركون</button>
-            )}
-            <button onClick={() => window.location.href = '/awards'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaTrophy size={24} /> الجوائز والفورمة</button>
-        </div>
-      </div>
+        {(league || user.leagueId) ? (
+            <div className="career-buttons-container" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', flexWrap: 'wrap' }}>
+                <button onClick={() => window.location.href = '/fixtures'} style={{ padding: '15px 30px', fontSize: '18px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaCalendarAlt size={24} /> المباريات</button>
+                <button onClick={() => window.location.href = '/standings'} style={{ padding: '15px 30px', fontSize: '18px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaTrophy size={24} /> الترتيب</button>
+                <button onClick={() => window.location.href = '/stats'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaChartBar size={24} /> إحصائيات الفرق</button>
+                <button onClick={() => window.location.href = '/player-stats'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaRunning size={24} /> ترتيب الهدافين</button>
+                {user.role === 'admin' && (
+                    <button onClick={() => window.location.href = '/managers'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaUsers size={24} /> المشاركون</button>
+                )}
+                <button onClick={() => window.location.href = '/awards'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaTrophy size={24} /> الجوائز والفورمة</button>
+            </div>
+        ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px', marginTop: '20px' }}>
+                <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px' }}>
+                    <h3>1. الانضمام لبطولة</h3>
+                    <input type="text" placeholder="كود البطولة" value={leagueCode} onChange={(e) => setLeagueCode(e.target.value)} style={{ padding: '8px', width: '60%', marginLeft: '10px' }} />
+                    <button onClick={handleJoinLeague} style={{ padding: '8px 15px', backgroundColor: '#38003c', color: 'white', border: 'none' }}>انضمام</button>
+                </div>
+            </div>
+        )}
 
-      {(league || user.leagueId) && (
+        {(league || user.leagueId) && (
             <div style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
                 {!user.teamId ? (
                     <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
@@ -721,6 +734,7 @@ const Dashboard = () => {
                 )}
             </div>
         )}
+      </div>
 
       {/* Modal */}
       {showSubModal && myTeamData && (
@@ -773,13 +787,13 @@ const Dashboard = () => {
             60% {transform: translateY(-8px);}
         }
 
-        /* 📱 التوافق مع الهاتف دون تغيير الـ JSX */
+        /* 📱 التوافق مع الهاتف - حل شامل دون المساس بالهيكل */
         @media (max-width: 768px) {
             .dashboard-container { padding: 15px !important; }
             header { flex-direction: column !important; text-align: center; gap: 20px; }
             .admin-grid-layout { grid-template-columns: 1fr !important; }
             .career-buttons-container { gap: 10px !important; }
-            .career-buttons-container button { width: 100% !important; padding: 15px !important; }
+            .career-buttons-container button { width: calc(50% - 15px) !important; padding: 12px 5px !important; font-size: 14px !important; }
             .deadline-banner-style { font-size: 14px !important; flex-direction: column; gap: 5px !important; }
             .deadline-banner-style span { font-size: 18px !important; }
             .blink-notice { font-size: 14px !important; padding: 12px !important; }
