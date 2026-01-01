@@ -39,7 +39,7 @@ const Dashboard = () => {
   const [excelFile, setExcelFile] = useState(null); 
   const [penaltyExcelFile, setPenaltyExcelFile] = useState(null);
 
-  // 🆕 ميزات إضافية: العداد والوميض
+  // 🆕 ميزات إضافية: العداد والوميض (هذه هي الإضافة الوحيدة)
   const [deadlineData, setDeadlineData] = useState(null);
   const [timeLeft, setTimeLeft] = useState('');
   const [needsLineupUpdate, setNeedsLineupUpdate] = useState(false);
@@ -50,19 +50,19 @@ const Dashboard = () => {
   useEffect(() => {
     fetchPLTeams();
     fetchMyLeagueData();
-    fetchDeadlineStatus(); // 🆕 جلب الديدلاين للعداد
+    fetchDeadlineStatus(); // جلب الديدلاين
     if (user.teamId) {
         checkMyTeamStatus();
         fetchNextOpponent(); 
         if (user.teamId !== 'created' && user.teamId !== 'joined') {
             fetchMyTeamDetails(); 
-            checkIfLineupNeeded(); // 🆕 جلب حالة التشكيلة للإشعار
+            checkIfLineupNeeded(); // فحص التشكيلة
         }
     }
     if (user.leagueId) fetchLeagueTeams();
   }, [user]);
 
-  // 🆕 دالة جلب الديدلاين العام
+  // دالة العداد والإشعار (إضافة برمجية فقط)
   const fetchDeadlineStatus = async () => {
     try {
         const { data } = await API.get('/gameweek/status');
@@ -70,7 +70,6 @@ const Dashboard = () => {
     } catch (err) { console.error("Deadline error"); }
   };
 
-  // 🆕 دالة التحقق من حاجة التشكيلة للتحديث (للإشعار الوامض)
   const checkIfLineupNeeded = async () => {
     try {
         const { data: status } = await API.get('/gameweek/status');
@@ -84,7 +83,6 @@ const Dashboard = () => {
     } catch (err) { setNeedsLineupUpdate(false); }
   };
 
-  // 🆕 مؤقت العداد التنازلي
   useEffect(() => {
     if (!deadlineData) return;
     const timer = setInterval(() => {
@@ -428,7 +426,7 @@ const Dashboard = () => {
   return (
     <div style={{ padding: '40px', fontFamily: 'Arial, sans-serif', direction: 'rtl' }}>
       
-      {/* ⏳ 1. عداد الديدلاين العام (يظهر للجميع) */}
+      {/* 🆕 1. عداد الديدلاين العام (إضافة) */}
       {deadlineData && (
           <div style={{ 
               background: '#38003c', color: '#00ff85', padding: '15px', borderRadius: '12px', 
@@ -442,7 +440,7 @@ const Dashboard = () => {
           </div>
       )}
 
-      {/* 🚨 2. الإشعار الوامض للمناجير (فقط إذا لم يتم حفظ التشكيلة) */}
+      {/* 🆕 2. الإشعار الوامض للمناجير (إضافة) */}
       {needsLineupUpdate && (
           <div className="blink-notice">
               ⚠️ تنبيه: لم يتم حفظ تشكيلة الجولة القادمة يدوياً! سارع بالدخول لغرفة التبديل لتجنب العقوبات.
@@ -475,7 +473,7 @@ const Dashboard = () => {
 
       {message && <div style={{ backgroundColor: '#e0f7fa', padding: '15px', marginBottom: '20px', borderRadius: '5px', color: '#006064' }}>{message}</div>}
 
-      {isLeagueCreator && renderAutoUpdateMonitor()}
+	  {isLeagueCreator && renderAutoUpdateMonitor()}
       {renderRewardNotice()}
       {renderPenaltyNotice()}
 
@@ -564,7 +562,7 @@ const Dashboard = () => {
                   </div>
 
                   <div style={{ padding: '10px', border: '1px solid #d32f2f', borderRadius: '8px', background: '#ffebee' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', color: '#c62828', marginBottom: '5px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'center', alignItems: 'center', gap: '5px', color: '#c62828', marginBottom: '5px' }}>
                         <FaSkullCrossbones /> سجل المخالفات (Excel):
                     </label>
                     <div style={{ display: 'flex', gap: '5px' }}>
@@ -753,6 +751,7 @@ const Dashboard = () => {
       <style>{`
         .sync-icon-spin { animation: spin 1s linear infinite; } 
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
         .blink-notice {
             animation: blinker 1.5s linear infinite;
             background-color: #ff1744;
@@ -766,7 +765,9 @@ const Dashboard = () => {
             box-shadow: 0 5px 20px rgba(255,23,68,0.4);
             border: 2px solid white;
         }
+
         @keyframes blinker { 50% { opacity: 0.3; } }
+        
         @keyframes pulse {
             0% { transform: scale(1); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
             50% { transform: scale(1.02); box-shadow: 0 4px 25px rgba(0,0,0,0.2); }
@@ -776,6 +777,15 @@ const Dashboard = () => {
             0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
             40% {transform: translateY(-15px);}
             60% {transform: translateY(-8px);}
+        }
+
+        /* 📱 تحسينات الهاتف الذكية فقط (بدون تغيير الهيكل) */
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: center !important; text-align: center; }
+            .career-buttons-container { gap: 10px !important; }
+            /* جعل الأزرار تأخذ نصف الشاشة في الهاتف لكي لا تخرج عن الإطار */
+            .career-buttons-container button { width: calc(50% - 15px) !important; padding: 10px !important; font-size: 14px !important; }
+            .admin-grid-layout { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>
