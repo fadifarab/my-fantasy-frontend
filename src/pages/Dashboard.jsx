@@ -452,32 +452,72 @@ const Dashboard = () => {
           </div>
       )}
 
-      <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', borderBottom: '1px solid #ddd', paddingBottom: '20px' }}>
-        <div>
-            <div style={{display:'flex', alignItems:'center', gap:'15px'}}>
-                {/* 🛡️ إصلاح اللوغو: إضافة minWidth ومنع التقلص لضمان ظهوره على الهاتف */}
-                {league?.logoUrl && (
-                    <div style={{ minWidth: '60px', width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #38003c', background: '#fff' }}>
-                        <img 
-                            src={`${SERVER_URL}${league.logoUrl}`} 
-                            alt="League Logo" 
-                            style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-                        />
-                    </div>
+      <header style={{ 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', // مضاف لضمان التوسط العمودي
+    marginBottom: '40px', 
+    borderBottom: '1px solid #ddd', 
+    paddingBottom: '20px',
+    flexWrap: 'wrap', // يسمح بزر الخروج بالنزول لأسفل في الشاشات الصغيرة جداً
+    gap: '20px'
+}}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+        {/* 🛡️ الحاوية المصلحة للشعار */}
+        {league?.logoUrl && (
+            <div style={{ 
+                minWidth: '65px',  // حجم ثابت أدنى
+                width: '65px', 
+                height: '65px', 
+                borderRadius: '50%', 
+                overflow: 'hidden', 
+                border: '3px solid #38003c', // زيادة السمك قليلاً للجمالية
+                background: '#fff',
+                flexShrink: 0,     // 👈 أهم خاصية: تمنع اختفاء الصورة على الهاتف
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+                <img 
+                    src={`${SERVER_URL}${league.logoUrl}`} 
+                    alt="League Logo" 
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+                />
+            </div>
+        )}
+        
+        <div style={{ textAlign: 'right' }}>
+            <h1 style={{ margin: 0, fontSize: '1.5rem' }}>لوحة التحكم 📱</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
+                    أهلاً، {user.username} {user.role === 'admin' ? (isLeagueCreator ? ' (المدير 👑)' : ' (مشرف 🛠)') : ' (عضو)'}
+                </p>
+                {league && (
+                    <span style={{ 
+                        background: '#38003c', 
+                        color: '#00ff85', 
+                        padding: '2px 10px', 
+                        borderRadius: '20px', 
+                        fontSize: '11px', 
+                        fontWeight: 'bold' 
+                    }}>
+                        GW {league.currentGw}
+                    </span>
                 )}
-                <div>
-                    <h1 style={{ margin: 0 }}>لوحة التحكم 📱</h1>
-                    <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                        <p style={{ margin: '5px 0', color: '#666' }}>
-                            أهلاً، {user.username} {user.role === 'admin' ? (isLeagueCreator ? ' (مدير البطولة 👑)' : ' (مشرف 🛠)') : ' (عضو)'}
-                        </p>
-                        {league && <span style={{background:'#e3f2fd', color:'#1565c0', padding:'2px 8px', borderRadius:'4px', fontSize:'12px', fontWeight:'bold'}}>الجولة الحالية: {league.currentGw}</span>}
-                    </div>
-                </div>
             </div>
         </div>
-        <button onClick={logout} style={{ backgroundColor: '#ff4d4d', color: 'white', border: 'none', padding: '10px 20px', cursor: 'pointer', height: '40px', borderRadius: '8px' }}>تسجيل خروج</button>
-      </header>
+    </div>
+    
+    <button onClick={logout} style={{ 
+        backgroundColor: '#ff4d4d', 
+        color: 'white', 
+        border: 'none', 
+        padding: '10px 20px', 
+        cursor: 'pointer', 
+        borderRadius: '8px',
+        fontWeight: 'bold'
+    }}>
+        خروج
+    </button>
+</header>
 
       {message && <div style={{ backgroundColor: '#e0f7fa', padding: '15px', marginBottom: '20px', borderRadius: '5px', color: '#006064' }}>{message}</div>}
 
