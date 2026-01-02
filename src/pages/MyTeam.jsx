@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { 
     FaUserTie, FaCrown, FaCheck, FaArrowDown, FaExchangeAlt, 
-    FaTshirt, FaClock, FaExclamationTriangle, FaCalendarCheck, FaLock 
+    FaTshirt, FaClock, FaExclamationTriangle, FaCalendarCheck, FaLock, FaUserPlus 
 } from "react-icons/fa"; 
 import { TbSoccerField, TbReplace } from "react-icons/tb";
 
@@ -17,6 +17,7 @@ const MyTeam = () => {
   const [lineup, setLineup] = useState({}); 
   const [activeChip, setActiveChip] = useState('none');
   const [message, setMessage] = useState('');
+  const [pendingMembers, setPendingMembers] = useState([]); // لطلبات الانضمام الجديدة
 
   const [deadline, setDeadline] = useState(null);
   const [currentGW, setCurrentGW] = useState(null); 
@@ -24,8 +25,9 @@ const MyTeam = () => {
   const [timeLeft, setTimeLeft] = useState('');
   const [isEditable, setIsEditable] = useState(false);
 
+  // 1. المزامنة والتحميل الأولي
   useEffect(() => {
-    const initializeGW = async () => {
+    const initializePage = async () => {
       try {
         const { data: status } = await API.get('/gameweek/status');
         if (status) {
@@ -35,13 +37,14 @@ const MyTeam = () => {
           await fetchTeamForGW(nextGW);
         }
       } catch (error) {
-        console.error("خطأ في جلب الحالة:", error);
+        console.error("Initialization error:", error);
         setLoading(false);
       }
     };
-    initializeGW();
+    initializePage();
   }, []);
 
+  // 2. جلب بيانات الفريق والطلبات المعلقة
   const fetchTeamForGW = async (gwId) => {
     setLoading(true);
     try {
@@ -51,9 +54,7 @@ const MyTeam = () => {
         setDeadline(data.deadline_time ? new Date(data.deadline_time) : null);
 
         const initialLineup = {};
-        const playersSource = (data.lineup && data.lineup.length > 0) 
-          ? data.lineup 
-          : (data.members || []);
+        const playersSource = (data.lineup && data.lineup.length > 0) ? data.lineup : (data.members || []);
 
         playersSource.forEach((p, index) => {
           if (p) {
@@ -77,17 +78,39 @@ const MyTeam = () => {
         setLineup(initialLineup);
         setActiveChip(data.activeChip || 'none');
         
-        if (gwId <= currentGW) setMessage('🔒 هذه الجولة منتهية أو جارية حالياً. العرض فقط.');
-        else if (data.isInherited) setMessage('📋 هذه تشكيلة موروثة. اضغط حفظ لتأكيدها للجولة القادمة.');
+        if (gwId <= currentGW) setMessage('🔒 الجولة منتهية. العرض فقط.');
+        else if (data.isInherited) setMessage('📋 تشكيلة موروثة. يرجى الحفظ للجولة القادمة.');
         else setMessage('');
+
+        // جلب طلبات الانضمام إذا كان المستخدم هو المناجير
+        const managerId = data.managerId?._id || data.managerId;
+        if (user._id === managerId) {
+            fetchPendingRequests(data._id);
+        }
       }
       setLoading(false);
     } catch (error) {
-      console.error("Fetch Error:", error);
       setLoading(false);
     }
   };
 
+  const fetchPendingRequests = async (teamId) => {
+    try {
+        const { data } = await API.get(`/teams/pending-members/${teamId}`);
+        setPendingMembers(data);
+    } catch (err) { console.error("Error fetching pending requests"); }
+  };
+
+  const handleAcceptMember = async (userId) => {
+    try {
+        await API.put('/teams/accept-member', { teamId: team._id, userId });
+        setMessage('✅ تم قبول اللاعب في الفريق!');
+        fetchPendingRequests(team._id);
+        fetchTeamForGW(selectedGW); // تحديث القائمة فوراً
+    } catch (err) { setMessage('فشل قبول اللاعب'); }
+  };
+
+  // 3. مؤقت الديدلاين والتحقق من الصلاحية
   useEffect(() => {
     const timer = setInterval(() => {
       if (!deadline) {
@@ -97,17 +120,16 @@ const MyTeam = () => {
       }
       const now = new Date();
       const diff = deadline - now;
-      
       setIsEditable(selectedGW === currentGW + 1 && diff > 0);
 
       if (diff <= 0) {
-        setTimeLeft(selectedGW <= currentGW ? 'انتهى الوقت! ⛔' : 'الجولة مغلقة');
+        setTimeLeft('مغلق ⛔');
       } else {
-        const days = Math.floor(diff / 86400000);
-        const hours = Math.floor((diff % 86400000) / 3600000);
-        const minutes = Math.floor((diff % 3600000) / 60000);
-        const seconds = Math.floor((diff % 60000) / 1000);
-        setTimeLeft(`متبقي: ${days}ي ${hours}س ${minutes}د ${seconds}ث`);
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        setTimeLeft(`متبقي: ${d}ي ${h}س ${m}د ${s}ث`);
       }
     }, 1000);
     return () => clearInterval(timer);
@@ -119,13 +141,10 @@ const MyTeam = () => {
     setLineup(prev => {
       const p = prev[id];
       if (!p.isStarter && startersCount >= 3) {
-        setMessage('خطأ: يجب اختيار 3 لاعبين أساسيين فقط!');
+        setMessage('⚠️ يمكنك اختيار 3 أساسيين فقط!');
         return prev;
       }
-      return {
-        ...prev,
-        [id]: { ...p, isStarter: !p.isStarter, isCaptain: p.isStarter ? false : p.isCaptain }
-      };
+      return { ...prev, [id]: { ...p, isStarter: !p.isStarter, isCaptain: p.isStarter ? false : p.isCaptain } };
     });
   };
 
@@ -140,24 +159,16 @@ const MyTeam = () => {
   const handleSaveLineup = async () => {
     if (!isEditable) return;
     const startersCount = Object.values(lineup).filter(p => p.isStarter).length;
-    if (startersCount !== 3) {
-        setMessage(`⛔ يجب اختيار 3 أساسيين (أنت اخترت ${startersCount})`);
-        return;
-    }
+    if (startersCount !== 3) { setMessage(`⛔ اختر 3 أساسيين`); return; }
     try {
-      const playersArray = Object.values(lineup).map(p => ({
-        userId: p.userId, isStarter: p.isStarter, isCaptain: p.isCaptain
-      }));
-      const { data } = await API.post('/gameweek/lineup', { 
-        players: playersArray, activeChip, gw: selectedGW 
-      });
+      const playersArray = Object.values(lineup).map(p => ({ userId: p.userId, isStarter: p.isStarter, isCaptain: p.isCaptain }));
+      const { data } = await API.post('/gameweek/lineup', { players: playersArray, activeChip, gw: selectedGW });
       setMessage(`✅ ${data.message}`);
-      await fetchTeamForGW(selectedGW);
-      setTimeout(() => setMessage(''), 4000);
-    } catch (err) { setMessage(err.response?.data?.message || 'فشل الحفظ'); }
+      fetchTeamForGW(selectedGW);
+    } catch (err) { setMessage('فشل الحفظ'); }
   };
 
-  if (loading || !team) return <div style={{textAlign:'center', marginTop:'100px', fontSize:'20px'}}>جاري التحميل... ⚽</div>;
+  if (loading || !team) return <div style={{textAlign:'center', padding:'50px'}}>جاري التحميل... ⚽</div>;
 
   const starters = Object.values(lineup).filter(p => p.isStarter);
   const bench = Object.values(lineup).filter(p => !p.isStarter);
@@ -166,7 +177,7 @@ const MyTeam = () => {
   const KitImage = ({ size = 80 }) => {
     const kitSrc = `/kits/${team.name}.png`;
     return (
-      <div style={{ position: 'relative', width: '100%', maxWidth: size, aspectRadio: '1/1', display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="kit-container">
+      <div style={{ position: 'relative', width: '100%', maxWidth: size, display: 'flex', justifyContent: 'center', alignItems: 'center' }} className="kit-container">
         <img 
             src={kitSrc} alt="Kit" 
             style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 5px 5px rgba(0,0,0,0.5))' }}
@@ -218,10 +229,25 @@ const MyTeam = () => {
       
       {message && <div style={{ padding: '10px 20px', marginBottom: '20px', borderRadius: '8px', fontWeight:'bold', backgroundColor: message.includes('✅') ? '#e8f5e9' : '#fff3e0', color: message.includes('✅') ? 'green' : '#e65100', textAlign:'center', border: `1px solid ${message.includes('✅') ? 'green' : '#ffcc80'}` }}>{message}</div>}
 
+      {/* 🔔 قسم طلبات الانضمام للفريق - خاص بالمناجير */}
+      {isManager && pendingMembers.length > 0 && (
+          <div style={{ background: '#fff3e0', border: '2px dashed #ff9800', padding: '15px', borderRadius: '12px', marginBottom: '20px' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#e65100', display: 'flex', alignItems: 'center', gap: '10px' }}><FaUserPlus /> طلبات انضمام جديدة</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {pendingMembers.map(m => (
+                      <div key={m._id} style={{ background: '#fff', padding: '10px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                          <span style={{ fontWeight: 'bold' }}>{m.username}</span>
+                          <button onClick={() => handleAcceptMember(m._id)} style={{ background: '#2e7d32', color: '#fff', border: 'none', padding: '6px 15px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>قبول ✅</button>
+                      </div>
+                  ))}
+              </div>
+          </div>
+      )}
+
       <div className="main-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
         
-        {/* Pitch Area */}
-        <div className="pitch-area" style={{ width: '100%' }}>
+        {/* الملعب */}
+        <div className="pitch-area">
             {isManager && (
                 <div className="chips-container" style={{ marginBottom: '15px', backgroundColor: 'white', padding: '10px', borderRadius: '12px', display:'flex', gap:'8px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', overflowX: 'auto', scrollbarWidth: 'none' }}>
                     {['none', 'tripleCaptain', 'benchBoost', 'freeHit'].map(chip => (
@@ -240,7 +266,6 @@ const MyTeam = () => {
                 position: 'relative', borderRadius: '15px', overflow: 'hidden', minHeight: '550px', border: '4px solid #fff', boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
                 background: `repeating-linear-gradient(0deg, #419d36, #419d36 40px, #4caf50 40px, #4caf50 80px)` 
             }}>
-                {/* Pitch Markings */}
                 <div style={{ position: 'absolute', top: '10px', left: '10px', right: '10px', bottom: '10px', border: '1px solid rgba(255,255,255,0.3)', pointerEvents: 'none' }}></div>
                 <div style={{ position: 'absolute', top: '50%', left: '10px', right: '10px', height: '1px', backgroundColor: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }}></div>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '100px', height: '100px', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '50%', pointerEvents: 'none' }}></div>
@@ -275,8 +300,8 @@ const MyTeam = () => {
             )}
         </div>
 
-        {/* Bench Area */}
-        <div className="bench-area" style={{ width: '100%' }}>
+        {/* الدكة */}
+        <div className="bench-area">
             <div style={{ backgroundColor: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                 <h3 style={{ margin: '0 0 15px 0', borderBottom: '2px solid #f0f0f0', paddingBottom: '10px', color: '#37003c', fontSize: '16px' }}>🛋 دكة الاحتياط</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -299,7 +324,6 @@ const MyTeam = () => {
       </div>
 
       <style>{`
-        /* 📱 تحسينات الهواتف الذكية الشاملة */
         @media (max-width: 600px) {
             .my-team-container { padding: 8px !important; }
             .header-box { padding: 10px !important; }
@@ -314,11 +338,7 @@ const MyTeam = () => {
             .save-btn { font-size: 16px !important; position: sticky; bottom: 10px; z-index: 100; }
             .chips-container button { font-size: 10px !important; padding: 6px 10px !important; }
         }
-
-        /* منع التمرير الأفقي غير المرغوب فيه */
         body { overflow-x: hidden; }
-        
-        /* تجميل شريط التمرير للـ Chips */
         .chips-container::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
