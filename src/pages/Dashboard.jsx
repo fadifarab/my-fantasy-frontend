@@ -465,24 +465,32 @@ const Dashboard = () => {
     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
         {/* 🛡️ الحاوية المصلحة للشعار */}
         {league?.logoUrl && (
-            <div style={{ 
-                minWidth: '65px',  // حجم ثابت أدنى
-                width: '65px', 
-                height: '65px', 
-                borderRadius: '50%', 
-                overflow: 'hidden', 
-                border: '3px solid #38003c', // زيادة السمك قليلاً للجمالية
-                background: '#fff',
-                flexShrink: 0,     // 👈 أهم خاصية: تمنع اختفاء الصورة على الهاتف
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}>
-                <img 
-                    src={`${SERVER_URL}${league.logoUrl}`} 
-                    alt="League Logo" 
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-                />
-            </div>
-        )}
+    <div style={{ 
+        minWidth: '70px',  /* يمنع اختفاء اللوجو في الشاشات الصغيرة */
+        width: '70px', 
+        height: '70px', 
+        borderRadius: '50%', 
+        overflow: 'hidden', 
+        border: '3px solid #38003c', 
+        background: '#fff',
+        flexShrink: 0,     /* أهم خاصية لضمان ثبات الحجم على الهاتف */
+        boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+        display: 'flex',   /* لضمان توسيط الصورة داخل الدائرة */
+        justifyContent: 'center',
+        alignItems: 'center'
+    }}>
+        <img 
+            src={`${SERVER_URL}${league.logoUrl}`} 
+            alt="League Logo" 
+            style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'contain' /* يحافظ على أبعاد الشعار داخل الدائرة */
+            }} 
+            onError={(e) => { e.target.style.display = 'none'; }} /* إخفاء الصورة في حال فشل التحميل */
+        />
+    </div>
+)}
         
         <div style={{ textAlign: 'right' }}>
             <h1 style={{ margin: 0, fontSize: '1.5rem' }}>لوحة التحكم 📱</h1>
