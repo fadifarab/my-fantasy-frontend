@@ -452,80 +452,32 @@ const Dashboard = () => {
           </div>
       )}
 
-      <header style={{ 
-    display: 'flex', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', // مضاف لضمان التوسط العمودي
-    marginBottom: '40px', 
-    borderBottom: '1px solid #ddd', 
-    paddingBottom: '20px',
-    flexWrap: 'wrap', // يسمح بزر الخروج بالنزول لأسفل في الشاشات الصغيرة جداً
-    gap: '20px'
-}}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-        {/* 🛡️ الحاوية المصلحة للشعار */}
-        {league?.logoUrl && (
-    <div style={{ 
-        minWidth: '70px',  /* يمنع اختفاء اللوجو في الشاشات الصغيرة */
-        width: '70px', 
-        height: '70px', 
-        borderRadius: '50%', 
-        overflow: 'hidden', 
-        border: '3px solid #38003c', 
-        background: '#fff',
-        flexShrink: 0,     /* أهم خاصية لضمان ثبات الحجم على الهاتف */
-        boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-        display: 'flex',   /* لضمان توسيط الصورة داخل الدائرة */
-        justifyContent: 'center',
-        alignItems: 'center'
-    }}>
-        <img 
-            src={`${SERVER_URL}${league.logoUrl}`} 
-            alt="League Logo" 
-            style={{ 
-                width: '100%', 
-                height: '100%', 
-                objectFit: 'contain' /* يحافظ على أبعاد الشعار داخل الدائرة */
-            }} 
-            onError={(e) => { e.target.style.display = 'none'; }} /* إخفاء الصورة في حال فشل التحميل */
-        />
-    </div>
-)}
-        
-        <div style={{ textAlign: 'right' }}>
-            <h1 style={{ margin: 0, fontSize: '1.5rem' }}>لوحة التحكم 📱</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <p style={{ margin: '5px 0', color: '#666', fontSize: '14px' }}>
-                    أهلاً، {user.username} {user.role === 'admin' ? (isLeagueCreator ? ' (المدير 👑)' : ' (مشرف 🛠)') : ' (عضو)'}
-                </p>
-                {league && (
-                    <span style={{ 
-                        background: '#38003c', 
-                        color: '#00ff85', 
-                        padding: '2px 10px', 
-                        borderRadius: '20px', 
-                        fontSize: '11px', 
-                        fontWeight: 'bold' 
-                    }}>
-                        GW {league.currentGw}
-                    </span>
+      <header style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px', borderBottom: '1px solid #ddd', paddingBottom: '20px' }}>
+        <div>
+            <div style={{display:'flex', alignItems:'center', gap:'15px'}}>
+                {/* 🛡️ إصلاح اللوغو: إضافة minWidth ومنع التقلص لضمان ظهوره على الهاتف */}
+                {league?.logoUrl && (
+                    <div style={{ minWidth: '60px', width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #38003c', background: '#fff' }}>
+                        <img 
+                            src={`${SERVER_URL}${league.logoUrl}`} 
+                            alt="League Logo" 
+                            style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+                        />
+                    </div>
                 )}
+                <div>
+                    <h1 style={{ margin: 0 }}>لوحة التحكم 📱</h1>
+                    <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                        <p style={{ margin: '5px 0', color: '#666' }}>
+                            أهلاً، {user.username} {user.role === 'admin' ? (isLeagueCreator ? ' (مدير البطولة 👑)' : ' (مشرف 🛠)') : ' (عضو)'}
+                        </p>
+                        {league && <span style={{background:'#e3f2fd', color:'#1565c0', padding:'2px 8px', borderRadius:'4px', fontSize:'12px', fontWeight:'bold'}}>الجولة الحالية: {league.currentGw}</span>}
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <button onClick={logout} style={{ 
-        backgroundColor: '#ff4d4d', 
-        color: 'white', 
-        border: 'none', 
-        padding: '10px 20px', 
-        cursor: 'pointer', 
-        borderRadius: '8px',
-        fontWeight: 'bold'
-    }}>
-        خروج
-    </button>
-</header>
+        <button onClick={logout} style={{ backgroundColor: '#ff4d4d', color: 'white', border: 'none', padding: '10px 20px', cursor: 'pointer', height: '40px', borderRadius: '8px' }}>تسجيل خروج</button>
+      </header>
 
       {message && <div style={{ backgroundColor: '#e0f7fa', padding: '15px', marginBottom: '20px', borderRadius: '5px', color: '#006064' }}>{message}</div>}
 
@@ -533,31 +485,47 @@ const Dashboard = () => {
       {renderRewardNotice()}
       {renderPenaltyNotice()}
 
-      {user.teamId && nextOpponent && nextOpponent.hasFixture && nextOpponent.opponent && (
-        <div style={{ marginBottom: '30px' }}>
-            <h2 style={{ color: '#38003c', borderBottom: '2px solid #38003c', paddingBottom: '10px', display: 'inline-block' }}>🔥 مواجهتك القادمة</h2>
-            <div 
-                onClick={() => navigate(`/team-history/${nextOpponent.opponent._id}`, { state: { team: nextOpponent.opponent, startGw: nextOpponent.gameweek } })} 
-                style={{ background: 'linear-gradient(135deg, #6a1b9a 0%, #4a148c 100%)', color: 'white', padding: '20px', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', boxShadow: '0 5px 15px rgba(106, 27, 154, 0.4)', transition: 'transform 0.2s', marginTop: '10px' }} 
-                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'} 
-                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div style={{ background: 'white', padding: '5px', borderRadius: '50%', width: '60px', height: '60px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        {nextOpponent.opponent.logoUrl && <img src={nextOpponent.opponent.logoUrl} style={{ width: '45px', height: '45px', objectFit: 'contain' }} />}
-                    </div>
-                    <div>
-                        <div style={{ fontSize: '12px', opacity: 0.8, color: '#e1bee7' }}>
-                            {nextOpponent.isHome ? 'على أرضك (Home)' : 'خارج أرضك (Away)'} • GW{nextOpponent.gameweek}
-                        </div>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold' }}>{nextOpponent.opponent.name}</div>
-                        <div style={{ fontSize: '12px', color: '#ffeb3b', marginTop: '5px' }}>👈 اضغط للاطلاع على تاريخ الخصم</div>
-                    </div>
-                </div>
-                <div style={{ fontSize: '30px', fontWeight: 'bold', opacity: 0.2 }}>VS</div>
-            </div>
-        </div>
-      )}
+      {user.teamId && nextOpponent && (
+  <div style={{ marginBottom: '30px' }}>
+      <h2 style={{ color: '#38003c', borderBottom: '2px solid #38003c', paddingBottom: '10px', display: 'inline-block' }}>
+          🔥 مواجهتك القادمة (الجولة {deadlineData?.nextGwId || nextOpponent.gameweek})
+      </h2>
+      <div 
+          onClick={() => navigate(`/team-history/${nextOpponent.opponent?._id}`, { state: { team: nextOpponent.opponent, startGw: deadlineData?.nextGwId || nextOpponent.gameweek } })} 
+          style={{ 
+              background: 'linear-gradient(135deg, #6a1b9a 0%, #4a148c 100%)', 
+              color: 'white', 
+              padding: '20px', 
+              borderRadius: '15px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between', 
+              cursor: 'pointer', 
+              boxShadow: '0 5px 15px rgba(106, 27, 154, 0.4)', 
+              transition: 'transform 0.2s', 
+              marginTop: '10px' 
+          }} 
+      >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{ background: 'white', padding: '5px', borderRadius: '50%', width: '60px', height: '60px', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0 }}>
+                  {nextOpponent.opponent?.logoUrl && (
+                      <img src={nextOpponent.opponent.logoUrl} style={{ width: '45px', height: '45px', objectFit: 'contain' }} alt="Opponent" />
+                  )}
+              </div>
+              <div>
+                  <div style={{ fontSize: '12px', opacity: 0.8, color: '#e1bee7' }}>
+                      {nextOpponent.isHome ? 'على أرضك (Home)' : 'خارج أرضك (Away)'} • GW {deadlineData?.nextGwId || nextOpponent.gameweek}
+                  </div>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                      {nextOpponent.opponent?.name || "في انتظار تحديد الخصم"}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#ffeb3b', marginTop: '5px' }}>👈 اضغط للتجسس على الخصم</div>
+              </div>
+          </div>
+          <div style={{ fontSize: '30px', fontWeight: 'bold', opacity: 0.2 }}>VS</div>
+      </div>
+  </div>
+)}
 
       {user.role === 'admin' && (
         <div style={{ backgroundColor: '#f3e5f5', padding: '20px', borderRadius: '10px', marginBottom: '40px', border: '1px solid #ce93d8' }}>
