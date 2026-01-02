@@ -1,8 +1,7 @@
-// client/src/pages/LeagueStandings.jsx
 import { useState, useEffect } from 'react';
 import API from '../utils/api';
 import { useNavigate } from 'react-router-dom';
-import { FaTrophy, FaStar } from "react-icons/fa";
+import { FaTrophy, FaStar, FaExclamationTriangle } from "react-icons/fa"; // أضفنا أيقونة التحذير
 
 const LeagueStandings = () => {
     const [teams, setTeams] = useState([]);
@@ -15,7 +14,7 @@ const LeagueStandings = () => {
     const fetchStandings = async () => {
         try {
             const { data } = await API.get('/leagues/standings');
-            // الترتيب: حسب نقاط الدوري أولاً، ثم فارق نقاط الفانتزي
+            // الترتيب: حسب نقاط الدوري أولاً (التي تشمل الخصم والبونيس)، ثم فارق نقاط الفانتزي
             const sorted = data.sort((a, b) => {
                 if (b.stats.points !== a.stats.points) return b.stats.points - a.stats.points;
                 return b.stats.totalFplPoints - a.stats.totalFplPoints;
@@ -43,8 +42,13 @@ const LeagueStandings = () => {
                             <th style={{ padding: '15px' }}>فاز</th>
                             <th style={{ padding: '15px' }}>تعادل</th>
                             <th style={{ padding: '15px' }}>خسر</th>
-                            {/* عمود البونيس */}
                             <th style={{ padding: '15px', color:'#ffd700' }} title="نقاط إضافية لأعلى رصيد"><FaStar /> بونيس</th>
+                            
+                            {/* العمود الجديد للعقوبات */}
+                            <th style={{ padding: '15px', color: '#ff4d4d' }} title="نقاط مخصومة بسبب المخالفات">
+                                <FaExclamationTriangle /> عقوبات
+                            </th>
+
                             <th style={{ padding: '15px' }}>نقاط FPL</th>
                             <th style={{ padding: '15px', backgroundColor: '#00ff85', color: '#38003c' }}>النقاط</th>
                         </tr>
@@ -62,6 +66,12 @@ const LeagueStandings = () => {
                                 <td>{team.stats.drawn}</td>
                                 <td>{team.stats.lost}</td>
                                 <td style={{ fontWeight: 'bold', color: '#e65100' }}>{team.stats.bonusPoints}</td>
+                                
+                                {/* عرض قيمة العقوبة باللون الأحمر */}
+                                <td style={{ fontWeight: 'bold', color: '#d32f2f' }}>
+                                    {team.penaltyPoints > 0 ? `-${team.penaltyPoints}` : '0'}
+                                </td>
+
                                 <td style={{ color: '#666' }}>{team.stats.totalFplPoints}</td>
                                 <td style={{ padding: '15px', fontWeight: 'bold', fontSize: '18px', color: '#38003c' }}>
                                     {team.stats.points}
