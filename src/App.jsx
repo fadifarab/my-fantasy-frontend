@@ -15,6 +15,9 @@ import PlayerStats from './pages/PlayerStats';
 import TeamHistory from './pages/TeamHistory';
 import AwardsCenter from './pages/AwardsCenter';
 import AdminDeadlines from './pages/AdminDeadlines'; // تأكد من صحة المسار
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import TeamsManagement from './pages/TeamsManagement'
 
 const PrivateRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -38,6 +41,9 @@ function App() {
 		  <Route path="/team-history/:teamId" element={<TeamHistory />} />
 		  <Route path="/awards" element={<AwardsCenter />} />
 		  <Route path="/admin/deadlines" element={<AdminDeadlines />} />
+		  <Route path="/forgot-password" element={<ForgotPassword />} />
+		  <Route path="/reset-password/:token" element={<ResetPassword />} />
+		  <Route path="/teams-management" element={<TeamsManagement />} />
           
           <Route 
             path="/dashboard" 

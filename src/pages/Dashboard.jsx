@@ -6,7 +6,8 @@ import { TbSoccerField, TbReplace } from "react-icons/tb";
 import { 
     FaUserTie, FaRunning, FaTrophy, FaCalendarAlt, FaChartBar, FaUsers, 
     FaSync, FaWhatsapp, FaCopy, FaShareAlt, FaCamera, FaCheckCircle, 
-    FaLock, FaTimes, FaCheck, FaCrown, FaExclamationTriangle, FaSkullCrossbones, FaInfoCircle, FaFileExcel, FaClock
+    FaLock, FaTimes, FaCheck, FaCrown, FaExclamationTriangle, FaSkullCrossbones, FaInfoCircle, FaFileExcel, FaClock,
+    FaShieldAlt 
 } from "react-icons/fa";
 
 const Dashboard = () => {
@@ -634,8 +635,11 @@ const Dashboard = () => {
                 <button onClick={() => window.location.href = '/stats'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaChartBar size={24} /> إحصائيات الفرق</button>
                 <button onClick={() => window.location.href = '/player-stats'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaRunning size={24} /> ترتيب الهدافين</button>
                 {user.role === 'admin' && (
+					<>
                     <button onClick={() => window.location.href = '/managers'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaUsers size={24} /> المشاركون</button>
-                )}
+					<button onClick={() => window.location.href = '/teams-management'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaShieldAlt size={24} /> إدارة الفرق</button>
+					</>
+				)}
                 <button onClick={() => window.location.href = '/awards'} style={{ padding: '15px 30px', backgroundColor: 'white', color: '#38003c', border: '2px solid #38003c', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}><FaTrophy size={24} /> الجوائز والفورمة</button>
             </div>
         ) : (
