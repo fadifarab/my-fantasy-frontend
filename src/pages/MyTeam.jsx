@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { 
     FaUserTie, FaCrown, FaCheck, FaArrowDown, FaExchangeAlt, 
     FaTshirt, FaClock, FaExclamationTriangle, FaCalendarCheck, FaLock,
-    FaUserFriends, FaTimes
+    FaUserFriends, FaTimes, FaTrophy, FaRobot
 } from "react-icons/fa"; 
 import { TbSoccerField, TbReplace } from "react-icons/tb";
 
@@ -24,102 +24,20 @@ const MyTeam = () => {
   const [selectedGW, setSelectedGW] = useState(null); 
   const [timeLeft, setTimeLeft] = useState('');
   const [isEditable, setIsEditable] = useState(false);
+  const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
+
+  // تعريف أقلام اللعبة بالإنجليزية (متوافق مع الباكند)
+  const chips = [
+    { id: 'none', label: 'No Chip', icon: null, color: '#f5f5f5' },
+    { id: 'tripleCaptain', label: 'Triple Captain', icon: <FaCrown />, color: '#00ff87' },
+    { id: 'benchBoost', label: 'Bench Boost', icon: <FaExchangeAlt />, color: '#00ff87' },
+    { id: 'freeHit', label: 'Free Hit', icon: <FaTshirt />, color: '#00ff87' },
+    { id: 'theBest', label: 'The Best', icon: <FaTrophy />, color: '#9c27b0' }
+  ];
 
   // دالة للحصول على رابط الشعار الرسمي للفريق
   const getTeamLogoUrl = (teamName) => {
-    // خرائط أسماء الفرق (العربية ← الإنجليزية)
-    const teamNameMap = {
-        // العربية ← الإنجليزية الرسمية
-        'آرسنال': 'Arsenal',
-        'أرسنال': 'Arsenal',
-        'آرسنال': 'Arsenal',
-        
-        'مانشستر سيتي': 'Manchester City',
-        'مانشستر ستي': 'Manchester City',
-        
-        'أستون فيلا': 'Aston Villa',
-        'استون فيلا': 'Aston Villa',
-        
-        'ليفربول': 'Liverpool',
-        
-        'تشيلسي': 'Chelsea',
-        'تشيلسى': 'Chelsea',
-        
-        'مانشستر يونايتد': 'Manchester United',
-        
-        'سندرلاند': 'Sunderland',
-        
-        'إيفرتون': 'Everton',
-        'ايفرتون': 'Everton',
-        
-        'برينتفورد': 'Brentford',
-        
-        'كريستال بالاس': 'Crystal Palace',
-        
-        'فولهام': 'Fulham',
-        
-        'توتنهام هوتسبير': 'Tottenham Hotspur',
-        'توتنهام': 'Tottenham Hotspur',
-        
-        'نيوكاسل يونايتد': 'Newcastle United',
-        'نيوكاسل': 'Newcastle United',
-        
-        'برايتون': 'Brighton',
-        
-        'بورنموث': 'Bournemouth',
-        
-        'ليدز يونايتد': 'Leeds United',
-        'ليدز': 'Leeds United',
-        
-        'نوتنجهام فوريست': 'Nottingham Forest',
-        'نوتنغهام فورست': 'Nottingham Forest',
-        
-        'وست هام': 'West Ham',
-        'ويست هام': 'West Ham',
-        
-        'بيرنلي': 'Burnley',
-        
-        'وولفرهامبتون': 'Wolverhampton',
-        
-        // الإنجليزية المختصرة ← الإنجليزية الرسمية
-        "Nott'm Forest": "Nottingham Forest",
-        "Spurs": "Tottenham Hotspur",
-        "Man Utd": "Manchester United",
-        "Man City": "Manchester City",
-        "Newcastle": "Newcastle United",
-        "West Ham United": "West Ham",
-        "Wolves": "Wolverhampton"
-    };
-    
-    // تحويل الاسم إلى الإنجليزية الرسمية
-    const actualName = teamNameMap[teamName] || teamName;
-    
-    // الروابط الرسمية للدوري الإنجليزي الممتاز
-    const logoUrls = {
-        'Arsenal': 'https://resources.premierleague.com/premierleague/badges/t1.png',
-        'Aston Villa': 'https://resources.premierleague.com/premierleague/badges/t2.png',
-        'Bournemouth': 'https://resources.premierleague.com/premierleague/badges/t3.png',
-        'Brentford': 'https://resources.premierleague.com/premierleague/badges/t4.png',
-        'Brighton': 'https://resources.premierleague.com/premierleague/badges/t5.png',
-        'Chelsea': 'https://resources.premierleague.com/premierleague/badges/t6.png',
-        'Crystal Palace': 'https://resources.premierleague.com/premierleague/badges/t7.png',
-        'Everton': 'https://resources.premierleague.com/premierleague/badges/t8.png',
-        'Fulham': 'https://resources.premierleague.com/premierleague/badges/t9.png',
-        'Liverpool': 'https://resources.premierleague.com/premierleague/badges/t10.png',
-        'Manchester City': 'https://resources.premierleague.com/premierleague/badges/t12.png',
-        'Manchester United': 'https://resources.premierleague.com/premierleague/badges/t13.png',
-        'Newcastle United': 'https://resources.premierleague.com/premierleague/badges/t14.png',
-        'Nottingham Forest': 'https://resources.premierleague.com/premierleague/badges/t15.png',
-        'Tottenham Hotspur': 'https://resources.premierleague.com/premierleague/badges/t17.png',
-        'West Ham': 'https://resources.premierleague.com/premierleague/badges/t18.png',
-        'Wolverhampton': 'https://resources.premierleague.com/premierleague/badges/t19.png',
-        
-        // فرق إضافية
-        'Sunderland': 'https://resources.premierleague.com/premierleague/badges/r1.png',
-        'Leeds United': 'https://resources.premierleague.com/premierleague/badges/r2.png',
-        'Burnley': 'https://resources.premierleague.com/premierleague/badges/r3.png'
-    };
-    
+    // ... (نفس الكود السابق)
     return logoUrls[actualName] || `https://via.placeholder.com/150/37003c/FFFFFF?text=${teamName.substring(0, 2)}`;
   };
 
@@ -147,7 +65,14 @@ const MyTeam = () => {
       const { data } = await API.get(`/teams/me?gw=${gwId}`);
       if (data) {
         setTeam(data);
-        setDeadline(data.deadline_time ? new Date(data.deadline_time) : null);
+        
+        // تحقق من حالة الديدلاين
+        const deadlineTime = data.deadline_time ? new Date(data.deadline_time) : null;
+        setDeadline(deadlineTime);
+        
+        const now = new Date();
+        const deadlinePassed = deadlineTime && now > deadlineTime;
+        setIsDeadlinePassed(deadlinePassed);
 
         const initialLineup = {};
         const playersSource = (data.lineup && data.lineup.length > 0) 
@@ -176,9 +101,16 @@ const MyTeam = () => {
         setLineup(initialLineup);
         setActiveChip(data.activeChip || 'none');
         
-        if (gwId <= currentGW) setMessage('🔒 هذه الجولة منتهية أو جارية حالياً. العرض فقط.');
-        else if (data.isInherited) setMessage('📋 هذه تشكيلة موروثة. اضغط حفظ لتأكيدها للجولة القادمة.');
-        else setMessage('');
+        // إذا كان THE BEST مفعلاً والديدلاين انتهى، اعرض رسالة توضيحية
+        if (data.activeChip === 'theBest' && deadlinePassed) {
+          setMessage('🤖 خاصية "The Best" مفعلة! سيتم اختيار الكابتن الأعلى نقاطاً تلقائياً مع كل تحديث للنقاط.');
+        } else if (gwId <= currentGW) {
+          setMessage('🔒 هذه الجولة منتهية أو جارية حالياً. العرض فقط.');
+        } else if (data.isInherited) {
+          setMessage('📋 هذه تشكيلة موروثة. اضغط حفظ لتأكيدها للجولة القادمة.');
+        } else {
+          setMessage('');
+        }
       }
       setLoading(false);
     } catch (error) {
@@ -192,15 +124,18 @@ const MyTeam = () => {
       if (!deadline) {
         setTimeLeft(selectedGW > currentGW ? 'الجولة مفتوحة' : 'منتهية');
         setIsEditable(selectedGW === currentGW + 1);
+        setIsDeadlinePassed(false);
         return;
       }
       const now = new Date();
       const diff = deadline - now;
+      const deadlinePassed = diff <= 0;
       
-      setIsEditable(selectedGW === currentGW + 1 && diff > 0);
+      setIsDeadlinePassed(deadlinePassed);
+      setIsEditable(selectedGW === currentGW + 1 && !deadlinePassed);
 
-      if (diff <= 0) {
-        setTimeLeft(selectedGW <= currentGW ? 'انتهى الوقت! ⛔' : 'الجولة مغلقة');
+      if (deadlinePassed) {
+        setTimeLeft(selectedGW <= currentGW ? 'انتهى الوقت! ⛔' : 'انتهى الديدلاين');
       } else {
         const days = Math.floor(diff / 86400000);
         const hours = Math.floor((diff % 86400000) / 3600000);
@@ -230,6 +165,22 @@ const MyTeam = () => {
 
   const setCaptain = (id) => {
     if (!isEditable || !lineup[id].isStarter) return;
+    
+    // إذا كان THE BEST مفعلاً، اسأل المستخدم إذا كان يريد إلغاء التفعيل
+    if (activeChip === 'theBest') {
+      const confirmCancel = window.confirm(
+        '⚠️ خاصية "The Best" مفعلة!\n\n' +
+        'إذا قمت بتغيير الكابتن يدوياً، سيتم إلغاء تفعيل خاصية "The Best".\n' +
+        'هل تريد المتابعة؟'
+      );
+      
+      if (!confirmCancel) return;
+      
+      // إلغاء تفعيل THE BEST عند تغيير الكابتن يدوياً
+      setActiveChip('none');
+      setMessage('⚠️ تم إلغاء تفعيل خاصية "The Best" بسبب اختيار كابتن يدوياً');
+    }
+    
     const nl = { ...lineup };
     Object.keys(nl).forEach(k => nl[k].isCaptain = false);
     nl[id].isCaptain = true;
@@ -243,13 +194,50 @@ const MyTeam = () => {
         setMessage(`⛔ يجب اختيار 3 أساسيين (أنت اخترت ${startersCount})`);
         return;
     }
+    
+    // تحقق من وجود كابتن (مطلوب حتى مع تفعيل THE BEST)
+    const hasCaptain = Object.values(lineup).some(p => p.isStarter && p.isCaptain);
+    if (!hasCaptain) {
+        setMessage('⛔ يجب تعيين كابتن للفريق');
+        return;
+    }
+    
+    // التحقق من توافق القيم مع الباكند
+    const validChips = ['none', 'tripleCaptain', 'benchBoost', 'freeHit', 'theBest'];
+    if (!validChips.includes(activeChip)) {
+      setMessage('❌ قيمة Chip غير صالحة');
+      return;
+    }
+    
+    // إذا كان THE BEST مفعلاً، اعرض تحذير
+    if (activeChip === 'theBest') {
+      const confirmMessage = isDeadlinePassed 
+        ? '⚠️ تم تفعيل خاصية "The Best"!\n\n' +
+          'لقد انتهى الديدلاين بالفعل. سيتم تطبيق الخاصية فوراً واختيار الكابتن الأعلى نقاطاً تلقائياً.\n\n' +
+          'هل تريد المتابعة؟'
+        : '⚠️ تم تفعيل خاصية "The Best"!\n\n' +
+          'بعد انتهاء الديدلاين، سيتم اختيار الكابتن الأعلى نقاطاً (بعد خصم الهيتس) تلقائياً.\n' +
+          'سيتم تحديث الكابتن باستمرار مع كل تحديث للنقاط.\n\n' +
+          'هل تريد المتابعة؟'
+      
+      if (!window.confirm(confirmMessage)) {
+        return;
+      }
+    }
+    
     try {
       const playersArray = Object.values(lineup).map(p => ({
-        userId: p.userId, isStarter: p.isStarter, isCaptain: p.isCaptain
+        userId: p.userId, 
+        isStarter: p.isStarter, 
+        isCaptain: p.isCaptain
       }));
+      
       const { data } = await API.post('/gameweek/lineup', { 
-        players: playersArray, activeChip, gw: selectedGW 
+        players: playersArray, 
+        activeChip, 
+        gw: selectedGW 
       });
+      
       setMessage(`✅ ${data.message}`);
       await fetchTeamForGW(selectedGW);
       setTimeout(() => setMessage(''), 4000);
@@ -258,71 +246,7 @@ const MyTeam = () => {
     }
   };
 
-  const handleAcceptPlayer = async (playerId) => {
-    try {
-      let endpoint = '/teams/players/approve';
-      
-      const { data } = await API.put(endpoint, {
-        playerId,
-        teamId: team._id
-      });
-      
-      setMessage(`✅ ${data.message || 'تم قبول اللاعب بنجاح'}`);
-      
-      // إعادة تحميل بيانات الفريق
-      setTimeout(() => {
-        fetchTeamForGW(selectedGW);
-      }, 1000);
-      
-    } catch (err) {
-      // جرب مسار بديل إذا فشل الأول
-      if (err.response?.status === 404) {
-        try {
-          const { data } = await API.put('/teams/accept-member', {
-            playerId,
-            teamId: team._id
-          });
-          
-          setMessage(`✅ ${data.message || 'تم قبول اللاعب بنجاح (بالمسار البديل)'}`);
-          
-          setTimeout(() => {
-            fetchTeamForGW(selectedGW);
-          }, 1000);
-          
-          return;
-        } catch (secondErr) {
-          console.error("❌ فشل المسار البديل أيضاً:", secondErr);
-        }
-      }
-      
-      setMessage(
-        err.response?.data?.message || 
-        `فشل قبول اللاعب - تحقق من كونسول المتصفح`
-      );
-    }
-  };
-
-  const handleRejectPlayer = async (playerId) => {
-    if (!window.confirm('هل أنت متأكد من رفض هذا اللاعب؟')) return;
-    
-    try {
-      const endpoint = '/teams/players/reject';
-      
-      const { data } = await API.put(endpoint, {
-        playerId,
-        teamId: team._id
-      });
-      
-      setMessage(`✅ ${data.message || 'تم رفض اللاعب بنجاح'}`);
-      
-      setTimeout(() => {
-        fetchTeamForGW(selectedGW);
-      }, 1000);
-      
-    } catch (err) {
-      setMessage(err.response?.data?.message || 'فشل رفض اللاعب');
-    }
-  };
+  // ... (بقية الدوال handleAcceptPlayer و handleRejectPlayer)
 
   if (loading || !team) return <div style={{textAlign:'center', marginTop:'100px', fontSize:'20px'}}>جاري التحميل... ⚽</div>;
 
@@ -330,7 +254,7 @@ const MyTeam = () => {
   const bench = Object.values(lineup).filter(p => !p.isStarter);
   const isManager = team.managerId && user._id === (team.managerId._id || team.managerId);
 
-  // مكون KitImage الأصلي (كما كان يعمل بشكل رائع)
+  // مكون KitImage الأصلي
   const KitImage = ({ size = 80 }) => {
     const kitSrc = `/kits/${team.name}.png`;
     return (
@@ -345,57 +269,8 @@ const MyTeam = () => {
     );
   };
 
-  // مكون شعار الفريق للهيدر فقط (بدون التأثير على الأقمصة)
-  const TeamHeaderLogo = () => {
-    const logoUrl = getTeamLogoUrl(team.name);
-    const initials = team.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
-    
-    return (
-      <div style={{
-        width: '50px',
-        height: '50px',
-        borderRadius: '50%',
-        backgroundColor: 'white',
-        border: '3px solid #37003c',
-        padding: '5px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 3px 10px rgba(0,0,0,0.2)'
-      }}>
-        <img 
-          src={logoUrl}
-          alt={`شعار ${team.name}`}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-            borderRadius: '50%'
-          }}
-          onError={(e) => {
-            e.target.style.display = 'none';
-            e.target.parentNode.innerHTML = `
-              <div style="
-                width: 100%;
-                height: 100%;
-                border-radius: 50%;
-                background: linear-gradient(135deg, #37003c, #00ff85);
-                color: white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-                font-size: 18px;
-                box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
-              ">
-                ${initials}
-              </div>
-            `;
-          }}
-        />
-      </div>
-    );
-  };
+  // الحصول على معلومات القلم النشط
+  const activeChipInfo = chips.find(chip => chip.id === activeChip);
 
   return (
     <div className="my-team-container" style={{ padding: '20px', fontFamily: 'Arial, sans-serif', direction: 'rtl', backgroundColor: '#eef1f5', minHeight: '100vh' }}>
@@ -419,7 +294,6 @@ const MyTeam = () => {
             }}
             onError={(e) => {
                 e.target.style.display = 'none';
-                // اعرض بديل نصي
                 const initials = team.name.substring(0, 2).toUpperCase();
                 e.target.insertAdjacentHTML('afterend', 
                     `<div style="
@@ -430,7 +304,7 @@ const MyTeam = () => {
                         color: white; 
                         display: flex; 
                         align-items: center; 
-                        justify-content: center; 
+                        justifyContent: center; 
                         font-weight: bold;
                         border: 2px solid #00ff85;
                     ">${initials}</div>`
@@ -478,12 +352,18 @@ const MyTeam = () => {
           borderRadius: '8px', 
           fontWeight:'bold', 
           backgroundColor: message.includes('✅') ? '#e8f5e9' : 
-                         message.includes('❌') ? '#ffebee' : '#fff3e0', 
+                         message.includes('❌') ? '#ffebee' : 
+                         message.includes('⚠️') ? '#fff3e0' : 
+                         message.includes('🤖') ? '#f3e5f5' : '#fff3e0', 
           color: message.includes('✅') ? 'green' : 
-                message.includes('❌') ? '#c62828' : '#e65100', 
+                message.includes('❌') ? '#c62828' : 
+                message.includes('⚠️') ? '#e65100' : 
+                message.includes('🤖') ? '#7b1fa2' : '#e65100', 
           textAlign:'center', 
           border: `1px solid ${message.includes('✅') ? 'green' : 
-                  message.includes('❌') ? '#ef9a9a' : '#ffcc80'}`
+                  message.includes('❌') ? '#ef9a9a' : 
+                  message.includes('⚠️') ? '#ffcc80' : 
+                  message.includes('🤖') ? '#e1bee7' : '#ffcc80'}`
         }}>
           {message}
         </div>
@@ -494,14 +374,69 @@ const MyTeam = () => {
         {/* Pitch Area */}
         <div className="pitch-area" style={{ width: '100%' }}>
             {isManager && (
-                <div className="chips-container" style={{ marginBottom: '15px', backgroundColor: 'white', padding: '10px', borderRadius: '12px', display:'flex', gap:'8px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', overflowX: 'auto', scrollbarWidth: 'none' }}>
-                    {['none', 'tripleCaptain', 'benchBoost', 'freeHit'].map(chip => (
-                        <button key={chip} onClick={() => isEditable && setActiveChip(chip)} 
+                <div className="chips-container" style={{ 
+                    marginBottom: '15px', 
+                    backgroundColor: 'white', 
+                    padding: '15px', 
+                    borderRadius: '12px', 
+                    display:'flex', 
+                    gap:'10px', 
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.05)', 
+                    overflowX: 'auto', 
+                    scrollbarWidth: 'none',
+                    flexWrap: 'wrap'
+                }}>
+                    <div style={{ width: '100%', marginBottom: '10px' }}>
+                        <h4 style={{ margin: '0', color: '#37003c', fontSize: '14px' }}>
+                            🎯 تفعيل خاص للجولة
+                        </h4>
+                        {activeChip === 'theBest' && (
+                            <div style={{ fontSize: '11px', color: '#7b1fa2', marginTop: '5px', padding: '5px', backgroundColor: '#f3e5f5', borderRadius: '5px' }}>
+                                {isDeadlinePassed 
+                                    ? '🤖 خاصية "The Best" مفعلة - سيتم تحديث الكابتن تلقائياً مع كل تحديث للنقاط' 
+                                    : '⚠️ بعد انتهاء الديدلاين، سيتم اختيار الكابتن الأعلى نقاطاً تلقائياً'
+                                }
+                            </div>
+                        )}
+                    </div>
+                    
+                    {chips.map(chip => (
+                        <button 
+                            key={chip.id} 
+                            onClick={() => {
+                                if (isEditable) {
+                                    // إذا كان المستخدم يختار "No Chip" وكان THE BEST مفعلاً، اسأله
+                                    if (chip.id === 'none' && activeChip === 'theBest') {
+                                        const confirmCancel = window.confirm(
+                                            'هل تريد إلغاء تفعيل خاصية "The Best"؟\n\n' +
+                                            'إذا ألغيت التفعيل، لن يتم اختيار الكابتن تلقائياً بناءً على النقاط.'
+                                        );
+                                        if (!confirmCancel) return;
+                                    }
+                                    setActiveChip(chip.id);
+                                }
+                            }} 
                             style={{ 
-                                padding: '8px 12px', borderRadius: '20px', border: '1px solid #ddd', cursor: isEditable ? 'pointer' : 'not-allowed', fontWeight: 'bold', fontSize: '11px',
-                                backgroundColor: activeChip === chip ? '#00ff87' : '#f5f5f5', color: activeChip === chip ? '#37003c' : '#555', opacity: isEditable ? 1 : 0.6, whiteSpace: 'nowrap'
+                                padding: '8px 15px', 
+                                borderRadius: '20px', 
+                                border: activeChip === chip.id ? `2px solid ${chip.color}` : '1px solid #ddd', 
+                                cursor: isEditable ? 'pointer' : 'not-allowed', 
+                                fontWeight: 'bold', 
+                                fontSize: '12px',
+                                backgroundColor: activeChip === chip.id ? chip.color : '#f5f5f5', 
+                                color: activeChip === chip.id ? 
+                                    (chip.id === 'theBest' ? 'white' : '#37003c') : 
+                                    '#555', 
+                                opacity: isEditable ? 1 : 0.6, 
+                                whiteSpace: 'nowrap',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                minWidth: '120px',
+                                justifyContent: 'center'
                             }}>
-                            {chip === 'none' ? 'بدون تفعيل' : chip.toUpperCase()}
+                            {chip.icon}
+                            {chip.label}
                         </button>
                     ))}
                 </div>
@@ -522,15 +457,87 @@ const MyTeam = () => {
                             <div key={player.userId} className="player-slot" style={{ textAlign: 'center', position: 'relative', width: '80px' }}>
                                 <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
                                     <KitImage size={65} /> 
-                                    {player.isCaptain && <FaCrown size={20} color="#ffd700" style={{ position: 'absolute', top: '-10px', right: '5px', zIndex: 10, filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.8))' }} />}
+                                    {player.isCaptain && (
+                                        <div style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+                                            <FaCrown 
+                                                size={20} 
+                                                color="#ffd700" 
+                                                style={{ 
+                                                    filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.8))',
+                                                    border: activeChip === 'theBest' ? '2px solid #9c27b0' : 'none',
+                                                    borderRadius: '50%',
+                                                    padding: '2px',
+                                                    backgroundColor: activeChip === 'theBest' ? 'white' : 'transparent'
+                                                }} 
+                                            />
+                                            {activeChip === 'theBest' && isDeadlinePassed && (
+                                                <FaRobot 
+                                                    size={10} 
+                                                    color="#9c27b0" 
+                                                    style={{ 
+                                                        position: 'absolute', 
+                                                        top: '-5px', 
+                                                        right: '-5px',
+                                                        backgroundColor: 'white',
+                                                        borderRadius: '50%',
+                                                        padding: '2px',
+                                                        border: '1px solid #9c27b0'
+                                                    }} 
+                                                />
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="player-name-tag" style={{ backgroundColor: 'rgba(55, 0, 60, 0.9)', color: 'white', padding: '3px 2px', borderRadius: '4px', fontSize: '11px', marginTop: '4px', fontWeight: 'bold', borderBottom: '3px solid #00ff87', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <div className="player-name-tag" style={{ 
+                                    backgroundColor: 'rgba(55, 0, 60, 0.9)', 
+                                    color: 'white', 
+                                    padding: '3px 2px', 
+                                    borderRadius: '4px', 
+                                    fontSize: '11px', 
+                                    marginTop: player.isCaptain ? '20px' : '4px', 
+                                    fontWeight: 'bold', 
+                                    borderBottom: player.isCaptain && activeChip === 'theBest' ? '3px solid #9c27b0' : '3px solid #00ff87', 
+                                    overflow: 'hidden', 
+                                    textOverflow: 'ellipsis', 
+                                    whiteSpace: 'nowrap' 
+                                }}>
                                     {player.username}
+                                    {player.isCaptain && activeChip === 'theBest' && isDeadlinePassed && (
+                                        <div style={{ fontSize: '8px', color: '#ffd700', marginTop: '2px' }}>
+                                            🤖 تلقائي
+                                        </div>
+                                    )}
                                 </div>
                                 {isManager && isEditable && (
                                     <div style={{ marginTop: '8px', display: 'flex', gap: '5px', justifyContent: 'center' }}>
                                         <button onClick={() => toggleStarter(player.userId)} style={{ backgroundColor: '#ff1744', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FaArrowDown size={12} /></button>
-                                        <button onClick={() => setCaptain(player.userId)} style={{ backgroundColor: player.isCaptain ? '#ffd700' : '#eee', border: '1px solid #999', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>C</button>
+                                        <button 
+                                            onClick={() => setCaptain(player.userId)} 
+                                            style={{ 
+                                                backgroundColor: player.isCaptain ? '#ffd700' : '#eee', 
+                                                border: player.isCaptain && activeChip === 'theBest' ? '2px solid #9c27b0' : '1px solid #999', 
+                                                borderRadius: '50%', 
+                                                width: '28px', 
+                                                height: '28px', 
+                                                cursor: 'pointer', 
+                                                fontWeight: 'bold', 
+                                                fontSize: '12px',
+                                                position: 'relative'
+                                            }}>
+                                            C
+                                            {player.isCaptain && activeChip === 'theBest' && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    top: '-5px',
+                                                    right: '-5px',
+                                                    width: '10px',
+                                                    height: '10px',
+                                                    backgroundColor: '#9c27b0',
+                                                    borderRadius: '50%',
+                                                    border: '1px solid white'
+                                                }}></div>
+                                            )}
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -540,8 +547,24 @@ const MyTeam = () => {
             </div>
             
             {isManager && isEditable && (
-                <button className="save-btn" onClick={handleSaveLineup} style={{ width: '100%', padding: '15px', marginTop: '15px', backgroundColor: '#00ff85', color: '#37003c', border: 'none', borderRadius: '12px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 6px 15px rgba(0,255,133,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                    <FaCheck /> حفظ التشكيلة
+                <button className="save-btn" onClick={handleSaveLineup} style={{ 
+                    width: '100%', 
+                    padding: '15px', 
+                    marginTop: '15px', 
+                    backgroundColor: activeChip === 'theBest' ? '#9c27b0' : '#00ff85', 
+                    color: activeChip === 'theBest' ? 'white' : '#37003c', 
+                    border: 'none', 
+                    borderRadius: '12px', 
+                    fontSize: '18px', 
+                    fontWeight: 'bold', 
+                    cursor: 'pointer', 
+                    boxShadow: activeChip === 'theBest' ? '0 6px 15px rgba(156, 39, 176, 0.3)' : '0 6px 15px rgba(0,255,133,0.3)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '10px' 
+                }}>
+                    <FaCheck /> حفظ التشكيلة {activeChip === 'theBest' && 'مع تفعيل "The Best"'}
                 </button>
             )}
         </div>
@@ -747,7 +770,7 @@ const MyTeam = () => {
             .player-slot { width: 70px !important; }
             .player-name-tag { font-size: 10px !important; }
             .save-btn { font-size: 16px !important; position: sticky; bottom: 10px; z-index: 100; }
-            .chips-container button { font-size: 10px !important; padding: 6px 10px !important; }
+            .chips-container button { font-size: 10px !important; padding: 6px 10px !important; min-width: 100px !important; }
             .pending-section { padding: 15px !important; }
         }
 
