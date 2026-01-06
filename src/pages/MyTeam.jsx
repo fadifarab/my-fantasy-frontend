@@ -247,6 +247,71 @@ const MyTeam = () => {
   };
 
   // ... (بقية الدوال handleAcceptPlayer و handleRejectPlayer)
+  const handleAcceptPlayer = async (playerId) => {
+    try {
+      let endpoint = '/teams/players/approve';
+      
+      const { data } = await API.put(endpoint, {
+        playerId,
+        teamId: team._id
+      });
+      
+      setMessage(`✅ ${data.message || 'تم قبول اللاعب بنجاح'}`);
+      
+      // إعادة تحميل بيانات الفريق
+      setTimeout(() => {
+        fetchTeamForGW(selectedGW);
+      }, 1000);
+      
+    } catch (err) {
+      // جرب مسار بديل إذا فشل الأول
+      if (err.response?.status === 404) {
+        try {
+          const { data } = await API.put('/teams/accept-member', {
+            playerId,
+            teamId: team._id
+          });
+          
+          setMessage(`✅ ${data.message || 'تم قبول اللاعب بنجاح (بالمسار البديل)'}`);
+          
+          setTimeout(() => {
+            fetchTeamForGW(selectedGW);
+          }, 1000);
+          
+          return;
+        } catch (secondErr) {
+          console.error("❌ فشل المسار البديل أيضاً:", secondErr);
+        }
+      }
+      
+      setMessage(
+        err.response?.data?.message || 
+        `فشل قبول اللاعب - تحقق من كونسول المتصفح`
+      );
+    }
+  };
+  
+  const handleRejectPlayer = async (playerId) => {
+    if (!window.confirm('هل أنت متأكد من رفض هذا اللاعب؟')) return;
+    
+    try {
+      const endpoint = '/teams/players/reject';
+      
+      const { data } = await API.put(endpoint, {
+        playerId,
+        teamId: team._id
+      });
+      
+      setMessage(`✅ ${data.message || 'تم رفض اللاعب بنجاح'}`);
+      
+      setTimeout(() => {
+        fetchTeamForGW(selectedGW);
+      }, 1000);
+      
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'فشل رفض اللاعب');
+    }
+  };
 
   if (loading || !team) return <div style={{textAlign:'center', marginTop:'100px', fontSize:'20px'}}>جاري التحميل... ⚽</div>;
 
