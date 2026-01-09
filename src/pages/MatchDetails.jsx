@@ -1,46 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../utils/api';
-import { FaArrowLeft, FaBolt, FaUserAlt, FaCamera, FaSpinner, FaTrophy, FaCrown, FaExchangeAlt, FaTshirt, FaStar } from "react-icons/fa";
+import { 
+    FaArrowLeft, FaCamera, FaSpinner, FaCrown, FaExchangeAlt, 
+    FaTshirt, FaStar, FaUserAlt, FaMinusCircle, FaShieldAlt
+} from "react-icons/fa";
 import html2canvas from 'html2canvas';
 
-// ✅ مصفوفة تعريف الخواص لسهولة الوصول إليها
-const CHIP_CONFIG = {
-    'tripleCaptain': { label: 'Triple Captain', icon: <FaCrown color="#ffd700" />, color: '#ffd700' },
-    'benchBoost': { label: 'Bench Boost', icon: <FaExchangeAlt color="#00ff87" />, color: '#00ff87' },
-    'freeHit': { label: 'Free Hit', icon: <FaTshirt color="#00ff87" />, color: '#00ff87' },
-    'theBest': { label: 'The Best', icon: <FaStar color="#9c27b0" />, color: '#9c27b0' }
+const CHIPS_CONFIG = {
+    'tripleCaptain': { label: 'TRIPLE CAPTAIN', icon: <FaCrown />, color: '#ffd700', bg: 'rgba(255, 215, 0, 0.15)' },
+    'benchBoost': { label: 'BENCH BOOST', icon: <FaExchangeAlt />, color: '#00ff85', bg: 'rgba(0, 255, 133, 0.15)' },
+    'freeHit': { label: 'FREE HIT', icon: <FaTshirt />, color: '#00ccff', bg: 'rgba(0, 204, 255, 0.15)' },
+    'theBest': { label: 'THE BEST', icon: <FaStar />, color: '#ff00ff', bg: 'rgba(255, 0, 255, 0.15)' }
 };
 
-const SafeLogo = ({ url, size = 60 }) => {
+const SafeLogo = ({ url, size = 80, isLeague = false }) => {
     const [imgSrc, setImgSrc] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
-
+    const SERVER_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : '';
     useEffect(() => {
-        if (!url) {
-            setImgSrc('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'); 
-            setIsLoading(false);
-            return;
-        }
-        const fetchBase64 = async () => {
+        if (!url) return;
+        const fetchImg = async () => {
             try {
-                const { data } = await API.post('/teams/proxy-image', { imageUrl: url });
-                if (data.base64) setImgSrc(data.base64);
-            } catch (err) {
-                setImgSrc('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7');
-            } finally { setIsLoading(false); }
+                if (url.startsWith('/uploads')) { setImgSrc(`${SERVER_URL}${url}`); } 
+                else {
+                    const { data } = await API.post('/teams/proxy-image', { imageUrl: url });
+                    if (data.base64) setImgSrc(data.base64);
+                }
+            } catch (err) { console.error(err); }
         };
-        fetchBase64();
-    }, [url]);
+        fetchImg();
+    }, [url, SERVER_URL]);
 
     return (
-        <div style={{ 
-            width: `${size}px`, height: `${size}px`, minWidth: `${size}px`, minHeight: `${size}px`,
-            background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', 
-            justifyContent: 'center', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.4)',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)', position: 'relative'
-        }}>
-            {!isLoading && <img src={imgSrc} alt="Logo" style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', display: 'block' }} />}
+        <div style={{ width: size, height: size, background: '#fff', borderRadius: isLeague ? '10px' : '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 20px rgba(0,0,0,0.1)', padding: '8px', border: '1.5px solid #f0f0f0' }}>
+            {imgSrc ? <img src={imgSrc} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="L" /> : <FaShieldAlt size={size * 0.6} color="#ccc" />}
         </div>
     );
 };
@@ -49,6 +42,7 @@ const MatchDetails = () => {
     const { fixtureId } = useParams();
     const navigate = useNavigate();
     const [data, setData] = useState(null);
+    const [leagueInfo, setLeagueInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
     const matchRef = useRef(null);
@@ -58,6 +52,8 @@ const MatchDetails = () => {
             try {
                 const res = await API.get(`/fixtures/details/${fixtureId}`);
                 setData(res.data);
+                const leagueRes = await API.get('/leagues/me');
+                setLeagueInfo(leagueRes.data);
             } catch (err) { console.error(err); } 
             finally { setLoading(false); }
         };
@@ -68,137 +64,150 @@ const MatchDetails = () => {
         if (!matchRef.current) return;
         setExporting(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 600));
-            const canvas = await html2canvas(matchRef.current, {
-                scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#f5f7fa',
-                logging: false, width: matchRef.current.offsetWidth, height: matchRef.current.offsetHeight
-            });
+            const canvas = await html2canvas(matchRef.current, { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
             const link = document.createElement('a');
-            link.href = canvas.toDataURL("image/png", 1.0);
-            link.download = `Match-Result.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.download = `MatchResult.png`;
             link.click();
-        } catch (error) { alert("حدث خطأ أثناء حفظ الصورة"); } 
+        } catch (error) { alert("خطأ في التصدير"); } 
         finally { setExporting(false); }
     };
 
-    const sortLineup = (lineup) => {
-        if (!lineup) return [];
-        return [...lineup].sort((a, b) => (b.isCaptain - a.isCaptain) || (b.isStarter - a.isStarter));
-    };
-
-    if (loading || !data) return <div style={{textAlign:'center', padding:'100px'}}><FaSpinner className="fa-spin" /></div>;
+    if (loading || !data) return <div style={{display:'flex', height:'100vh', justifyContent:'center', alignItems:'center'}}><FaSpinner className="fa-spin" size={40} color="#37003c" /></div>;
 
     const { fixture, homeLineup, awayLineup } = data;
+    const maxRows = Math.max(homeLineup?.lineup?.length || 0, awayLineup?.lineup?.length || 0);
 
-    // ✅ مكون عرض الخاصية (Chip Badge)
-    const ChipBadge = ({ chipId }) => {
-        if (!chipId || chipId === 'none') return null;
-        const config = CHIP_CONFIG[chipId];
-        if (!config) return null;
+    // ✅ مكون عرض الخاصية مع الحفاظ على المساحة ثابتة
+    const ChipContainer = ({ chipId }) => {
+        const hasChip = chipId && chipId !== 'none' && CHIPS_CONFIG[chipId];
         return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '20px', border: `1px solid ${config.color}`, marginTop: '8px' }}>
-                {config.icon}
-                <span style={{ fontSize: '10px', fontWeight: 'bold', color: config.color, whiteSpace: 'nowrap' }}>{config.label}</span>
+            <div style={{ height: '35px', marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                {hasChip ? (
+                    <div style={{ background: CHIPS_CONFIG[chipId].bg, color: CHIPS_CONFIG[chipId].color, padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: '1000', display: 'flex', alignItems: 'center', gap: '5px', border: `1px solid ${CHIPS_CONFIG[chipId].color}`, whiteSpace: 'nowrap' }}>
+                        {CHIPS_CONFIG[chipId].icon} {CHIPS_CONFIG[chipId].label}
+                    </div>
+                ) : null}
             </div>
         );
     };
 
-    const PlayerCard = ({ player, isHome }) => (
-        <div className="player-card-row" style={{ 
-            display: 'flex', flexDirection: isHome ? 'row' : 'row-reverse', 
-            alignItems: 'center', padding: '10px 15px', marginBottom: '8px', 
-            borderRadius: '12px', backgroundColor: player.isStarter ? 'white' : '#f8f8f8', 
-            borderRight: !isHome ? '5px solid #00ff85' : 'none',
-            borderLeft: isHome ? '5px solid #38003c' : 'none',
-            boxShadow: '0 3px 6px rgba(0,0,0,0.06)', position: 'relative', height: '60px'
-        }}>
-            <div className="player-name-box" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexDirection: isHome ? 'row' : 'row-reverse', width: '45%' }}>
-                <div style={{ position: 'relative' }}>
-                    <div style={{ width: '32px', height: '32px', background: '#eee', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FaUserAlt size={14} color={player.isStarter ? '#38003c' : '#bbb'} />
+    const PlayerBox = ({ player, isHome, activeChip }) => {
+        if (!player) return <div style={{ flex: 1 }}></div>;
+        const raw = player.rawPoints || 0;
+        const hits = player.transferCost || 0;
+        const final = player.finalScore || 0;
+        const multiplier = player.isCaptain ? (activeChip === 'tripleCaptain' ? 3 : 2) : 1;
+
+        return (
+            <div style={{ flex: 1, padding: '15px 12px', background: player.isStarter ? '#fff' : 'rgba(240, 240, 240, 0.6)', borderRadius: '20px', border: player.isStarter ? '2.5px solid #f0f0f0' : '1.5px dashed #ccc', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: isHome ? 'row' : 'row-reverse', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ position: 'relative' }}>
+                        <div style={{ width: '45px', height: '45px', borderRadius: '15px', background: isHome ? '#37003c' : '#00ff85', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <FaUserAlt color={isHome ? '#fff' : '#37003c'} size={22} />
+                        </div>
+                        {player.isCaptain && <div style={{ position: 'absolute', top: -8, right: -8, background: '#ffd700', borderRadius: '50%', padding: '3px', border: '2px solid #fff' }}><FaCrown size={12} color="#000" /></div>}
                     </div>
-                    {player.isCaptain && (
-                        <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#ffd700', color: '#000', fontSize: '10px', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid white' }}>C</span>
-                    )}
+                    <div style={{ fontWeight: '1000', fontSize: '15px', color: '#1a1a1a', flex: 1, textAlign: isHome ? 'right' : 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {player.userId?.username}
+                    </div>
                 </div>
-                <div style={{ fontWeight: 'bold', fontSize: '13px', color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.userId?.username}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid #f5f5f5', paddingTop: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', textAlign: isHome ? 'right' : 'left' }}>
+                        <div style={{ fontSize: '14px', color: '#555', fontWeight: '1000' }}>RAW: {raw}</div>
+                        {hits > 0 && <div style={{ fontSize: '14px', color: '#ff1744', fontWeight: '1000' }}>HITS: -{hits}</div>}
+                        {player.isCaptain && <div style={{ fontSize: '11px', color: '#37003c', fontWeight: '1000', background:'#eee', padding:'2px 6px', borderRadius:'5px' }}>{multiplier === 3 ? 'TRIPLE' : 'X2'} CAPTAIN</div>}
+                    </div>
+                    <div style={{ textAlign: isHome ? 'left' : 'right' }}>
+                        <div style={{ fontSize: '34px', fontWeight: '1000', color: isHome ? '#37003c' : '#00a859', lineHeight: 1 }}>{final}</div>
+                    </div>
+                </div>
             </div>
-
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                {player.transferCost > 0 && (
-                    <span style={{ backgroundColor: '#ffebee', color: '#d32f2f', border: '1px solid #ffcdd2', borderRadius: '6px', padding: '2px 6px', fontSize: '10px', fontWeight: 'bold' }}>-{player.transferCost}H</span>
-                )}
-            </div>
-
-            <div style={{ width: '40px', display: 'flex', justifyContent: 'center' }}>
-                <div style={{ fontWeight: '900', fontSize: '18px', color: player.isStarter ? (isHome ? '#38003c' : '#00a859') : '#999' }}>{player.finalScore ?? 0}</div>
-            </div>
-        </div>
-    );
+        );
+    };
 
     return (
-        <div style={{ padding: '20px', backgroundColor: '#f5f7fa', minHeight: '100vh', direction: 'rtl' }} className="details-page-container">
-            <div className="top-nav" style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '850px', margin: '0 auto 20px' }}>
-                <button onClick={() => navigate(-1)} style={{ background: '#fff', border: 'none', borderRadius: '8px', padding: '8px 15px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}><FaArrowLeft /> عودة</button>
-                <button onClick={handleExportImage} disabled={exporting} style={{ background: '#38003c', color: '#00ff85', border: 'none', borderRadius: '10px', padding: '10px 20px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {exporting ? <FaSpinner className="fa-spin" /> : <><FaCamera /> حفظ الصورة</>}
+        <div style={{ padding: '15px', background: '#f0f2f5', minHeight: '100vh', direction: 'rtl', fontFamily: 'Arial, sans-serif' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <button onClick={() => navigate(-1)} style={{ background: '#fff', border: 'none', padding: '12px 25px', borderRadius: '15px', fontWeight: '1000', color: '#37003c', fontSize: '16px' }}>⬅ عودة</button>
+                <button onClick={handleExportImage} disabled={exporting} style={{ background: '#37003c', color: '#00ff85', border: 'none', padding: '12px 25px', borderRadius: '15px', fontWeight: '1000', fontSize: '16px', display:'flex', alignItems:'center', gap:'10px' }}>
+                    {exporting ? <FaSpinner className="fa-spin" /> : <><FaCamera /> مشاركة</>}
                 </button>
             </div>
 
-            <div ref={matchRef} className="match-card-main" style={{ maxWidth: '850px', margin: '0 auto', background: '#fff', borderRadius: '25px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
-                <div className="header-gradient" style={{ background: 'linear-gradient(135deg, #38003c 0%, #240028 100%)', padding: '40px 20px', color: 'white' }}>
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px' }} className="score-row">
+            <div ref={matchRef} style={{ background: '#fff', borderRadius: '45px', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.15)' }}>
+                <div style={{ padding: '25px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', borderBottom: '2px solid #f8f8f8' }}>
+                    <SafeLogo url={leagueInfo?.logoUrl} size={50} isLeague={true} />
+                    <div style={{ fontWeight: '1000', fontSize: '22px', color: '#37003c' }}>{leagueInfo?.name?.toUpperCase() || 'FANTASY LEAGUE'}</div>
+                </div>
+
+                <div style={{ background: 'linear-gradient(180deg, #37003c 0%, #1a001c 100%)', padding: '40px 10px', color: '#fff' }}>
+                    <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: '900', color: '#00ff85', marginBottom: '25px', letterSpacing: '3px' }}>GAMEWEEK {fixture.gameweek}</div>
+                    
+                    {/* ✅ استخدام الـ Grid مع محاذاة رأسية دقيقة */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'start', justifyItems: 'center' }}>
                         
-                        <div style={{ flex: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }} className="team-box">
-                            <SafeLogo url={fixture.homeTeamId?.logoUrl} size={window.innerWidth < 768 ? 70 : 90} />
-                            <h4 style={{ marginTop: '12px', fontSize: '16px', fontWeight: '900' }}>{fixture.homeTeamId?.name}</h4>
-                            {/* ✅ إظهار الخاصية للفريق الأول */}
-                            <ChipBadge chipId={homeLineup?.activeChip} />
+                        {/* المضيف */}
+                        <div style={{ textAlign: 'center', width: '100%' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center' }}><SafeLogo url={fixture.homeTeamId?.logoUrl} size={90} /></div>
+                            <div style={{ marginTop: '15px', fontSize: '18px', fontWeight: '1000', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{fixture.homeTeamId?.name}</div>
+                            <ChipContainer chipId={homeLineup?.activeChip} />
                         </div>
 
-                        <div style={{ flex: 3, textAlign: 'center' }} className="score-box">
-                            <div style={{ fontSize: '12px', color: '#00ff85', fontWeight: 'bold', marginBottom: '5px' }}>GAMEWEEK {fixture.gameweek}</div>
-                            <div style={{ fontSize: '50px', fontWeight: '900', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }} className="score-numbers">
-                                <span>{fixture.homeScore}</span><span style={{opacity:0.3}}>:</span><span>{fixture.awayScore}</span>
+                        {/* النتيجة */}
+                        <div style={{ textAlign: 'center', width: '100%', paddingTop: '15px' }}>
+                            <div style={{ fontSize: '85px', fontWeight: '1000', letterSpacing: '-5px', display:'flex', justifyContent:'center', alignItems:'center', gap:'12px', lineHeight: '1' }}>
+                                <span>{fixture.awayScore}</span>
+                                <span style={{ opacity: 0.2, fontSize:'45px' }}>:</span>
+                                <span>{fixture.homeScore}</span>
                             </div>
+                            <div style={{ color: '#00ff85', fontSize: '14px', fontWeight: '1000', letterSpacing: '2px', marginTop: '15px' }}>FINAL RESULT</div>
                         </div>
 
-                        <div style={{ flex: 2, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }} className="team-box">
-                            <SafeLogo url={fixture.awayTeamId?.logoUrl} size={window.innerWidth < 768 ? 70 : 90} />
-                            <h4 style={{ marginTop: '12px', fontSize: '16px', fontWeight: '900' }}>{fixture.awayTeamId?.name}</h4>
-                            {/* ✅ إظهار الخاصية للفريق الثاني */}
-                            <ChipBadge chipId={awayLineup?.activeChip} />
+                        {/* الضيف */}
+                        <div style={{ textAlign: 'center', width: '100%' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center' }}><SafeLogo url={fixture.awayTeamId?.logoUrl} size={90} /></div>
+                            <div style={{ marginTop: '15px', fontSize: '18px', fontWeight: '1000', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{fixture.awayTeamId?.name}</div>
+                            <ChipContainer chipId={awayLineup?.activeChip} />
                         </div>
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', padding: '25px' }} className="lineups-grid">
-                    <div className="lineup-col">
-                        <div style={{ padding: '8px', borderBottom: '3px solid #38003c', marginBottom: '15px', fontWeight: 'bold', color: '#38003c', textAlign: 'center' }}>صاحب الأرض</div>
-                        {sortLineup(homeLineup?.lineup).map((p, i) => <PlayerCard key={i} player={p} isHome={true} />)}
+                <div style={{ padding: '30px 15px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 10px 15px', marginBottom: '15px' }}>
+                        <div style={{ fontWeight: '1000', fontSize: '17px', color: '#37003c' }}>📍 HOME</div>
+                        <div style={{ fontWeight: '1000', fontSize: '17px', color: '#00a859' }}>AWAY 📍</div>
                     </div>
-                    <div className="lineup-col">
-                        <div style={{ padding: '8px', borderBottom: '3px solid #00ff85', marginBottom: '15px', fontWeight: 'bold', color: '#00796b', textAlign: 'center' }}>الضيوف</div>
-                        {sortLineup(awayLineup?.lineup).map((p, i) => <PlayerCard key={i} player={p} isHome={false} />)}
-                    </div>
+
+                    {Array.from({ length: maxRows }).map((_, i) => {
+                        const hPlayer = homeLineup?.lineup?.[i];
+                        const aPlayer = awayLineup?.lineup?.[i];
+                        const showBenchHeader = (hPlayer && !hPlayer.isStarter && (i === 0 || homeLineup.lineup[i-1].isStarter)) || 
+                                              (aPlayer && !aPlayer.isStarter && (i === 0 || awayLineup.lineup[i-1].isStarter));
+
+                        return (
+                            <div key={i}>
+                                {showBenchHeader && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', margin: '35px 0 20px' }}>
+                                        <div style={{ height: '3px', flex: 1, background: '#f0f0f0' }}></div>
+                                        <div style={{ fontWeight: '1000', fontSize: '16px', color: '#aaa', letterSpacing: '2px' }}>SUBSTITUTES / BENCH</div>
+                                        <div style={{ height: '3px', flex: 1, background: '#f0f0f0' }}></div>
+                                    </div>
+                                )}
+                                <div style={{ display: 'flex', gap: '12px', marginBottom: '15px' }}>
+                                    <PlayerBox player={hPlayer} isHome={true} activeChip={homeLineup?.activeChip} />
+                                    <PlayerBox player={aPlayer} isHome={false} activeChip={awayLineup?.activeChip} />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div style={{ padding: '40px', textAlign: 'center', background: '#f9f9f9', borderTop: '2px solid #eee' }}>
+                    <div style={{ fontWeight: '1000', fontSize: '17px', color: '#37003c', letterSpacing: '2px' }}>{leagueInfo?.name?.toUpperCase() || 'FANTASY LEAGUE'} PRO</div>
                 </div>
             </div>
-
-            <style>{`
-                .fa-spin { animation: spin 2s linear infinite; } 
-                @keyframes spin { 100% { transform: rotate(360deg); } }
-
-                @media (max-width: 768px) {
-                    .details-page-container { padding: 10px !important; }
-                    .header-gradient { padding: 20px 10px !important; }
-                    .score-numbers { font-size: 38px !important; }
-                    .team-box h4 { font-size: 13px !important; margin-top: 8px !important; }
-                    .lineups-grid { grid-template-columns: 1fr !important; padding: 15px !important; gap: 30px !important; }
-                    .player-name-box { width: 60% !important; }
-                    .player-card-row { height: 55px !important; padding: 5px 10px !important; }
-                    .top-nav { margin-bottom: 10px !important; }
-                }
-            `}</style>
+            <style>{` .fa-spin { animation: spin 2s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } } `}</style>
         </div>
     );
 };
