@@ -19,7 +19,7 @@ const Dashboard = () => {
   const [leagueTeams, setLeagueTeams] = useState([]);
   
   const [pendingTeams, setPendingTeams] = useState([]); 
-  const [pendingSubs, setPendingSubs] = useState([]);     
+  const [pendingSubs, setPendingSubs] = useState([]);      
 
   const [isApproved, setIsApproved] = useState(false);
   const [selectionMode, setSelectionMode] = useState(null);
@@ -584,11 +584,11 @@ const Dashboard = () => {
                         <button onClick={handleImportExcel} disabled={!excelFile || isSyncing} style={{ padding: '5px 10px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>رفع</button>
                     </div>
                   </div>
-				  
-				  <div style={{ padding: '15px', border: '2px solid #38003c', borderRadius: '10px', marginTop: '10px', background: '#fff' }}>
+                  
+                  <div style={{ padding: '15px', border: '2px solid #38003c', borderRadius: '10px', marginTop: '10px', background: '#fff' }}>
     <h3 style={{ color: '#38003c', marginTop: 0 }}><FaFileExcel /> استيراد التشكيلات والخواص</h3>
     <p style={{ fontSize: '12px', color: '#666' }}>ارفع ملف Lineup.xlsx لتحديث تشكيلات الفرق والـ Chips آلياً.</p>
-    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+    <div className="input-row-res" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <input 
             type="file" 
             accept=".xlsx, .xls, .csv" 
@@ -606,7 +606,7 @@ const Dashboard = () => {
 </div>
 
                   <div style={{ padding: '10px', border: '1px solid #d32f2f', borderRadius: '8px', background: '#ffebee' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'center', alignItems: 'center', gap: '5px', color: '#c62828', marginBottom: '5px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', color: '#c62828', marginBottom: '5px' }}>
                         <FaSkullCrossbones /> سجل المخالفات (Excel):
                     </label>
                     <div className="input-row-res" style={{ display: 'flex', gap: '5px' }}>
@@ -632,7 +632,7 @@ const Dashboard = () => {
                 <div style={{ flex: 1, backgroundColor: '#fff3e0', padding: '15px', borderRadius: '8px', border: '1px solid #ffcc80' }}>
                     <h3 style={{ margin: '0 0 10px 0', color: '#e65100' }}>🔔 طلبات فرق</h3>
                     {pendingTeams.length === 0 ? (<p style={{ textAlign: 'center' }}>لا يوجد</p>) : (
-                    <table style={{ width: '100%', backgroundColor: 'white' }}><tbody>{pendingTeams.map(team => (<tr key={team._id} style={{ borderBottom: '1px solid #eee' }}><td style={{ padding: '10px' }}>{team.name}</td><td style={{ textAlign: 'left', padding: '10px' }}><button onClick={() => handleApproveManager(team._id)} style={{ backgroundColor: '#2e7d32', color: 'white', border: 'none', padding: '5px 15px', borderRadius: '5px', cursor: 'pointer' }}>موافقة</button></td></tr>))}</tbody></table>)}
+                    <div style={{overflowX:'auto'}}><table style={{ width: '100%', backgroundColor: 'white' }}><tbody>{pendingTeams.map(team => (<tr key={team._id} style={{ borderBottom: '1px solid #eee' }}><td style={{ padding: '10px' }}>{team.name}</td><td style={{ textAlign: 'left', padding: '10px' }}><button onClick={() => handleApproveManager(team._id)} style={{ backgroundColor: '#2e7d32', color: 'white', border: 'none', padding: '5px 15px', borderRadius: '5px', cursor: 'pointer' }}>موافقة</button></td></tr>))}</tbody></table></div>)}
                 </div>
 
                 <div style={{ flex: 1, backgroundColor: '#e3f2fd', padding: '15px', borderRadius: '8px', border: '1px solid #90caf9' }}>
@@ -640,7 +640,7 @@ const Dashboard = () => {
                     {pendingSubs.length === 0 ? (
                         <p style={{ textAlign: 'center' }}>لا يوجد</p>
                     ) : (
-                        <table style={{ width: '100%', backgroundColor: 'white' }}>
+                        <div style={{overflowX:'auto'}}><table style={{ width: '100%', backgroundColor: 'white' }}>
                             <tbody>
                                 {pendingSubs.map(team => (
                                     <tr key={team._id} style={{ borderBottom: '1px solid #eee' }}>
@@ -655,7 +655,7 @@ const Dashboard = () => {
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></div>
                     )}
                 </div>
             </div>
@@ -798,32 +798,48 @@ const Dashboard = () => {
       <style>{`
         .sync-icon-spin { animation: spin 1s linear infinite; } 
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .blink-notice { animation: blinker 1.5s linear infinite; background-color: #ff1744; color: white; padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; margin-bottom: 25px; font-size: 18px; box-shadow: 0 5px 20px rgba(255,23,68,0.4); border: 2px solid white; }
+        .blink-notice { animation: blinker 1.5s linear infinite; background-color: #ff1744; color: white; padding: 15px; border-radius: 12px; text-align: center; font-weight: bold; margin-bottom: 25px; font-size: 14px; box-shadow: 0 5px 20px rgba(255,23,68,0.4); border: 2px solid white; }
         @keyframes blinker { 50% { opacity: 0.3; } }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
         @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-15px);} 60% {transform: translateY(-8px);} }
 
         /* 📱 تحسين التجاوب للهاتف دون حذف أي سطر برمجي */
         @media (max-width: 768px) {
-            .dashboard-container { padding: 15px !important; }
-            .header-res { flex-direction: column !important; text-align: center; gap: 20px; align-items: center !important; }
-            .header-info-flex { flex-direction: column !important; text-align: center; }
-            .header-sub-flex { justify-content: center; }
-            .deadline-banner-res { flex-direction: column; gap: 5px !important; font-size: 14px !important; }
-            .deadline-timer-span { font-size: 18px !important; }
-            .admin-grid-res { grid-template-columns: 1fr !important; }
+            .dashboard-container { padding: 10px !important; }
+            .header-res { flex-direction: column !important; text-align: center; gap: 15px; align-items: center !important; margin-bottom: 20px !important; }
+            .header-info-flex { flex-direction: column !important; text-align: center; gap: 10px !important; }
+            .header-sub-flex { justify-content: center; flex-wrap: wrap; }
+            .header-title { font-size: 22px !important; }
+            .logout-btn-res { width: 100%; }
+            
+            .deadline-banner-res { flex-direction: column; gap: 5px !important; font-size: 14px !important; padding: 10px !important; }
+            .deadline-timer-span { font-size: 18px !important; width: 90%; }
+            
+            .admin-grid-res { grid-template-columns: 1fr !important; gap: 15px !important; }
             .admin-tables-box-res { flex-direction: column; }
-            .career-grid-res button { width: 45% !important; padding: 12px 5px !important; font-size: 13px !important; flex-direction: column; gap: 5px !important; }
+            
+            .career-grid-res button { width: 48% !important; padding: 15px 5px !important; font-size: 12px !important; flex-direction: column; gap: 5px !important; height: auto !important; }
             .career-grid-res button svg { width: 20px; height: 20px; }
-            .pl-grid-res { grid-template-columns: repeat(3, 1fr) !important; }
+            
+            .pl-grid-res { grid-template-columns: repeat(3, 1fr) !important; gap: 10px !important; }
             .join-grid-res { grid-template-columns: repeat(2, 1fr) !important; }
+            
             .monitor-res-box { flex-direction: column; text-align: center !important; gap: 10px; }
-            .reward-res-box { flex-direction: column; text-align: center; }
-            .penalty-res-box { flex-direction: column; text-align: center; }
-            .opponent-card-res { flex-direction: column; gap: 10px; }
+            .reward-res-box { flex-direction: column; text-align: center; padding: 15px !important; gap: 10px !important; }
+            .reward-res-box h3 { font-size: 18px !important; }
+            .reward-res-box p { font-size: 13px !important; }
+            
+            .penalty-res-box { flex-direction: column; text-align: center; padding: 15px !important; gap: 10px !important; }
+            
+            .opponent-card-res { flex-direction: column; gap: 10px; padding: 15px !important; }
+            .opponent-name-res { font-size: 18px !important; }
             .vs-badge-res { display: none; }
-            .input-row-res { flex-direction: column; }
-            .input-row-res button { width: 100%; }
+            
+            .input-row-res { flex-direction: column; width: 100%; }
+            .input-row-res input, .input-row-res button { width: 100% !important; }
+            
+            .code-box-res { width: 100%; padding: 10px !important; }
+            .league-code-res { font-size: 20px !important; }
         }
       `}</style>
     </div>
