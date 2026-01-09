@@ -51,6 +51,7 @@ const TeamHistory = () => {
                 if (data.history) {
                     data.history.forEach(gw => {
                         if (gw.activeChip && gw.activeChip !== 'none' && CHIPS[gw.activeChip]) {
+                            // ✅ تعديل المنطق لتخزين كل مرحلة بشكل صحيح
                             if (gw.gameweek <= 19) usedChips.p1[gw.activeChip] = gw.gameweek;
                             else usedChips.p2[gw.activeChip] = gw.gameweek;
                         }
@@ -95,14 +96,22 @@ const TeamHistory = () => {
                             onError={(e) => { e.target.src = '/kits/default.png'; }} 
                         />
                     </div>
-                    {player.isCaptain && <FaCrown size={isMobile ? 22 : 32} color="#ffd700" style={{ position: 'absolute', top: '-12px', right: '-8px', zIndex: 15 }} />}
+                    {player.isCaptain && (
+                        <div style={{ position: 'absolute', top: '-12px', right: '-8px', zIndex: 15, textAlign: 'center' }}>
+                            <FaCrown size={isMobile ? 22 : 32} color={gwData?.activeChip === 'tripleCaptain' ? "#00ff87" : "#ffd700"} />
+                            {/* إظهار علامة x3 في تاريخ الفريق إذا كانت الخاصية مستخدمة */}
+                            {gwData?.activeChip === 'tripleCaptain' && (
+                                <div style={{ color: '#00ff87', fontSize: '10px', fontWeight: '900', textShadow: '1px 1px 2px black', marginTop: '-5px' }}>x3</div>
+                            )}
+                        </div>
+                    )}
                     {hits > 0 && (
                         <div style={{ position: 'absolute', top: '0', left: '-10px', background: '#d32f2f', color: 'white', borderRadius: '50%', width: '22px', height: '22px', fontSize: '10px', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', border: '2px solid white' }}>
                             -{hits}
                         </div>
                     )}
                 </div>
-                <div style={{ backgroundColor: '#37003c', color: 'white', padding: '3px 6px', borderRadius: '5px', fontSize: isMobile ? '10px' : '13px', marginTop: '6px', width: '95%', textAlign: 'center', borderBottom: '2px solid #00ff87', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ backgroundColor: '#37003c', color: 'white', padding: '3px 6px', borderRadius: '5px', fontSize: isMobile ? '10px' : '13px', marginTop: '6px', width: '95%', textAlign: 'center', borderBottom: player.isCaptain && gwData?.activeChip === 'theBest' ? '3px solid #ffd700' : '2px solid #00ff87', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {name}
                 </div>
                 <div style={{ fontSize: isMobile ? '15px' : '20px', fontWeight: '900', color: '#fff', background: player.isCaptain ? '#000' : (isSub ? '#777' : '#4caf50'), border: player.isCaptain ? '2px solid #ffd700' : '2px solid white', padding: '1px 12px', borderRadius: '12px', marginTop: '4px', boxShadow: '0 4px 8px rgba(0,0,0,0.2)', minWidth: '35px', textAlign: 'center' }}>
@@ -123,16 +132,27 @@ const TeamHistory = () => {
                 <div style={{width:'40px'}}></div>
             </div>
 
-            {/* Chips Bar */}
-            <div style={{ background: '#fff', padding: '10px', borderRadius: '15px', marginBottom: '15px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                {Object.keys(CHIPS).map(chip => {
-                    const usedGw = chipsHistory.p1[chip] || chipsHistory.p2[chip];
-                    return (
-                        <div key={chip} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: usedGw ? '#38003c' : '#eee', color: usedGw ? '#fff' : '#aaa', padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 'bold' }}>
-                            {CHIPS[chip].icon} {CHIPS[chip].label} {usedGw && `(${usedGw})`}
-                        </div>
-                    );
-                })}
+            {/* ✅ Chips Bar (تم تعديله ليعرض جولات الذهاب والإياب بشكل منفصل) */}
+            <div style={{ background: '#fff', padding: '15px', borderRadius: '15px', marginBottom: '15px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+                <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#38003c', marginBottom: '10px', textAlign: 'center', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>📊 سجل الخواص المستعملة</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+                    {Object.keys(CHIPS).map(chip => {
+                        const gwP1 = chipsHistory.p1[chip];
+                        const gwP2 = chipsHistory.p2[chip];
+                        return (
+                            <div key={chip} style={{ display: 'flex', gap: '4px' }}>
+                                {/* مرحلة الذهاب */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: gwP1 ? '#38003c' : '#eee', color: gwP1 ? '#fff' : '#aaa', padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 'bold' }}>
+                                    {CHIPS[chip].icon} {CHIPS[chip].label} (ذهاب) {gwP1 && `[${gwP1}]`}
+                                </div>
+                                {/* مرحلة الإياب */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: gwP2 ? '#00ff87' : '#eee', color: gwP2 ? '#38003c' : '#aaa', padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 'bold' }}>
+                                    {gwP2 && `[${gwP2}]`} (إياب)
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* GW Navigator */}
@@ -154,9 +174,32 @@ const TeamHistory = () => {
                 </div>
             ) : gwData && !gwData.noData ? (
                 <div style={{ maxWidth: '850px', margin: '0 auto' }}>
+                    
+                    {/* ✅ بطاقة الخاصية (إظهار الخاصية فوق الملعب للجميع) */}
+                    {gwData.activeChip && gwData.activeChip !== 'none' && (
+                        <div style={{
+                            backgroundColor: '#38003c',
+                            color: '#00ff87',
+                            padding: '10px',
+                            borderRadius: '12px 12px 0 0',
+                            textAlign: 'center',
+                            fontWeight: 'bold',
+                            border: '2px solid #00ff87',
+                            borderBottom: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '10px'
+                        }}>
+                            {CHIPS[gwData.activeChip]?.icon}
+                            <span>الخاصية المستخدمة: {CHIPS[gwData.activeChip]?.label}</span>
+                        </div>
+                    )}
+
                     <div style={{ 
                         background: `repeating-linear-gradient(0deg, #2e7d32, #2e7d32 45px, #388e3c 45px, #388e3c 90px)`,
-                        borderRadius: '20px', padding: isMobile ? '30px 5px' : '60px 20px', minHeight: isMobile ? '450px' : '650px', 
+                        borderRadius: gwData.activeChip && gwData.activeChip !== 'none' ? '0 0 20px 20px' : '20px', 
+                        padding: isMobile ? '30px 5px' : '60px 20px', minHeight: isMobile ? '450px' : '650px', 
                         display:'flex', flexDirection:'column', justifyContent: 'center', border:'6px solid #fff', position:'relative', overflow:'hidden'
                     }}>
                         {/* خطوط الملعب */}

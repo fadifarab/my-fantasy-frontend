@@ -37,8 +37,29 @@ const MyTeam = () => {
 
   // دالة للحصول على رابط الشعار الرسمي للفريق
   const getTeamLogoUrl = (teamName) => {
-    // ... (نفس الكود السابق)
-    return logoUrls[actualName] || `https://via.placeholder.com/150/37003c/FFFFFF?text=${teamName.substring(0, 2)}`;
+    const logoUrls = {
+        'Arsenal': 'https://resources.premierleague.com/premierleague/badges/t3.svg',
+        'Aston Villa': 'https://resources.premierleague.com/premierleague/badges/t7.svg',
+        'Bournemouth': 'https://resources.premierleague.com/premierleague/badges/t91.svg',
+        'Brentford': 'https://resources.premierleague.com/premierleague/badges/t94.svg',
+        'Brighton': 'https://resources.premierleague.com/premierleague/badges/t36.svg',
+        'Burnley': 'https://resources.premierleague.com/premierleague/badges/t90.svg',
+        'Chelsea': 'https://resources.premierleague.com/premierleague/badges/t8.svg',
+        'Crystal Palace': 'https://resources.premierleague.com/premierleague/badges/t31.svg',
+        'Everton': 'https://resources.premierleague.com/premierleague/badges/t11.svg',
+        'Fulham': 'https://resources.premierleague.com/premierleague/badges/t54.svg',
+        'Leeds Utd': 'https://resources.premierleague.com/premierleague/badges/t2.svg',
+        'Liverpool': 'https://resources.premierleague.com/premierleague/badges/t14.svg',
+        'Man City': 'https://resources.premierleague.com/premierleague/badges/t43.svg',
+        'Man Utd': 'https://resources.premierleague.com/premierleague/badges/t1.svg',
+        'Newcastle': 'https://resources.premierleague.com/premierleague/badges/t4.svg',
+        'Nott\'m Forest': 'https://resources.premierleague.com/premierleague/badges/t17.svg',
+        'Sheffield Utd': 'https://resources.premierleague.com/premierleague/badges/t49.svg',
+        'Spurs': 'https://resources.premierleague.com/premierleague/badges/t6.svg',
+        'West Ham': 'https://resources.premierleague.com/premierleague/badges/t21.svg',
+        'Wolves': 'https://resources.premierleague.com/premierleague/badges/t39.svg'
+    };
+    return logoUrls[teamName] || `https://via.placeholder.com/150/37003c/FFFFFF?text=${teamName?.substring(0, 2)}`;
   };
 
   useEffect(() => {
@@ -99,6 +120,7 @@ const MyTeam = () => {
         }
 
         setLineup(initialLineup);
+        // ✅ تحديث قيمة الخاصية حتى لو لم يكن مناجيراً لضمان ظهورها للجميع
         setActiveChip(data.activeChip || 'none');
         
         // إذا كان THE BEST مفعلاً والديدلاين انتهى، اعرض رسالة توضيحية
@@ -176,7 +198,6 @@ const MyTeam = () => {
       
       if (!confirmCancel) return;
       
-      // إلغاء تفعيل THE BEST عند تغيير الكابتن يدوياً
       setActiveChip('none');
       setMessage('⚠️ تم إلغاء تفعيل خاصية "The Best" بسبب اختيار كابتن يدوياً');
     }
@@ -195,21 +216,18 @@ const MyTeam = () => {
         return;
     }
     
-    // تحقق من وجود كابتن (مطلوب حتى مع تفعيل THE BEST)
     const hasCaptain = Object.values(lineup).some(p => p.isStarter && p.isCaptain);
     if (!hasCaptain) {
         setMessage('⛔ يجب تعيين كابتن للفريق');
         return;
     }
     
-    // التحقق من توافق القيم مع الباكند
     const validChips = ['none', 'tripleCaptain', 'benchBoost', 'freeHit', 'theBest'];
     if (!validChips.includes(activeChip)) {
       setMessage('❌ قيمة Chip غير صالحة');
       return;
     }
     
-    // إذا كان THE BEST مفعلاً، اعرض تحذير
     if (activeChip === 'theBest') {
       const confirmMessage = isDeadlinePassed 
         ? '⚠️ تم تفعيل خاصية "The Best"!\n\n' +
@@ -246,68 +264,43 @@ const MyTeam = () => {
     }
   };
 
-  // ... (بقية الدوال handleAcceptPlayer و handleRejectPlayer)
   const handleAcceptPlayer = async (playerId) => {
     try {
       let endpoint = '/teams/players/approve';
-      
       const { data } = await API.put(endpoint, {
         playerId,
         teamId: team._id
       });
-      
       setMessage(`✅ ${data.message || 'تم قبول اللاعب بنجاح'}`);
-      
-      // إعادة تحميل بيانات الفريق
-      setTimeout(() => {
-        fetchTeamForGW(selectedGW);
-      }, 1000);
-      
+      setTimeout(() => { fetchTeamForGW(selectedGW); }, 1000);
     } catch (err) {
-      // جرب مسار بديل إذا فشل الأول
       if (err.response?.status === 404) {
         try {
           const { data } = await API.put('/teams/accept-member', {
             playerId,
             teamId: team._id
           });
-          
           setMessage(`✅ ${data.message || 'تم قبول اللاعب بنجاح (بالمسار البديل)'}`);
-          
-          setTimeout(() => {
-            fetchTeamForGW(selectedGW);
-          }, 1000);
-          
+          setTimeout(() => { fetchTeamForGW(selectedGW); }, 1000);
           return;
         } catch (secondErr) {
           console.error("❌ فشل المسار البديل أيضاً:", secondErr);
         }
       }
-      
-      setMessage(
-        err.response?.data?.message || 
-        `فشل قبول اللاعب - تحقق من كونسول المتصفح`
-      );
+      setMessage(err.response?.data?.message || `فشل قبول اللاعب - تحقق من كونسول المتصفح`);
     }
   };
   
   const handleRejectPlayer = async (playerId) => {
     if (!window.confirm('هل أنت متأكد من رفض هذا اللاعب؟')) return;
-    
     try {
       const endpoint = '/teams/players/reject';
-      
       const { data } = await API.put(endpoint, {
         playerId,
         teamId: team._id
       });
-      
       setMessage(`✅ ${data.message || 'تم رفض اللاعب بنجاح'}`);
-      
-      setTimeout(() => {
-        fetchTeamForGW(selectedGW);
-      }, 1000);
-      
+      setTimeout(() => { fetchTeamForGW(selectedGW); }, 1000);
     } catch (err) {
       setMessage(err.response?.data?.message || 'فشل رفض اللاعب');
     }
@@ -319,7 +312,6 @@ const MyTeam = () => {
   const bench = Object.values(lineup).filter(p => !p.isStarter);
   const isManager = team.managerId && user._id === (team.managerId._id || team.managerId);
 
-  // مكون KitImage الأصلي
   const KitImage = ({ size = 80 }) => {
     const kitSrc = `/kits/${team.name}.png`;
     return (
@@ -334,7 +326,6 @@ const MyTeam = () => {
     );
   };
 
-  // الحصول على معلومات القلم النشط
   const activeChipInfo = chips.find(chip => chip.id === activeChip);
 
   return (
@@ -438,7 +429,8 @@ const MyTeam = () => {
         
         {/* Pitch Area */}
         <div className="pitch-area" style={{ width: '100%' }}>
-            {isManager && (
+            {/* عرض اختيار الخواص للمناجير فقط في الجولات القابلة للتعديل */}
+            {isManager && isEditable && (
                 <div className="chips-container" style={{ 
                     marginBottom: '15px', 
                     backgroundColor: 'white', 
@@ -470,7 +462,6 @@ const MyTeam = () => {
                             key={chip.id} 
                             onClick={() => {
                                 if (isEditable) {
-                                    // إذا كان المستخدم يختار "No Chip" وكان THE BEST مفعلاً، اسأله
                                     if (chip.id === 'none' && activeChip === 'theBest') {
                                         const confirmCancel = window.confirm(
                                             'هل تريد إلغاء تفعيل خاصية "The Best"؟\n\n' +
@@ -507,6 +498,33 @@ const MyTeam = () => {
                 </div>
             )}
 
+            {/* ✅ الجزء الجديد: إظهار الخاصية للجميع (لاعبين ومناجير) في الجولات السابقة */}
+            {!isEditable && activeChip !== 'none' && (
+                <div style={{
+                    marginBottom: '15px',
+                    backgroundColor: '#38003c',
+                    color: '#00ff85',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    boxShadow: '0 4px 15px rgba(56,0,60,0.3)',
+                    border: '2px solid #00ff85'
+                }}>
+                    <div style={{ fontSize: '20px' }}>
+                        {chips.find(c => c.id === activeChip)?.icon}
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '2px' }}>الخاصية المفعلة في هذه الجولة:</div>
+                        <div style={{ fontSize: '16px', fontWeight: 'bold' }}>
+                            {chips.find(c => c.id === activeChip)?.label}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="actual-pitch" style={{ 
                 position: 'relative', borderRadius: '15px', overflow: 'hidden', minHeight: '550px', border: '4px solid #fff', boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
                 background: `repeating-linear-gradient(0deg, #419d36, #419d36 40px, #4caf50 40px, #4caf50 80px)` 
@@ -526,7 +544,7 @@ const MyTeam = () => {
                                         <div style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
                                             <FaCrown 
                                                 size={20} 
-                                                color="#ffd700" 
+                                                color={activeChip === 'tripleCaptain' ? "#00ff85" : "#ffd700"} 
                                                 style={{ 
                                                     filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.8))',
                                                     border: activeChip === 'theBest' ? '2px solid #9c27b0' : 'none',
@@ -535,6 +553,10 @@ const MyTeam = () => {
                                                     backgroundColor: activeChip === 'theBest' ? 'white' : 'transparent'
                                                 }} 
                                             />
+                                            {/* إضافة مؤشر Triple Captain x3 للجميع */}
+                                            {!isEditable && activeChip === 'tripleCaptain' && (
+                                                <small style={{ display:'block', color:'#00ff85', fontSize:'10px', fontWeight:'bold', textShadow:'1px 1px 2px black', marginTop:'-5px' }}>x3</small>
+                                            )}
                                             {activeChip === 'theBest' && isDeadlinePassed && (
                                                 <FaRobot 
                                                     size={10} 
@@ -693,7 +715,7 @@ const MyTeam = () => {
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
-            gap: '15px',
+            gap: '15px', 
             marginTop: '15px'
           }}>
             {team.pendingMembers.map((player, index) => (
@@ -754,14 +776,11 @@ const MyTeam = () => {
                       cursor: 'pointer',
                       fontWeight: 'bold',
                       fontSize: '14px',
-                      transition: 'background-color 0.3s',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '8px'
                     }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#388e3c'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = '#4caf50'}
                   >
                     <FaCheck size={14} /> قبول
                   </button>
@@ -777,19 +796,10 @@ const MyTeam = () => {
                       cursor: 'pointer',
                       fontWeight: 'bold',
                       fontSize: '14px',
-                      transition: 'all 0.3s',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '8px'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = '#ffebee';
-                      e.target.style.color = '#b71c1c';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = '#f5f5f5';
-                      e.target.style.color = '#d32f2f';
                     }}
                   >
                     <FaTimes size={14} /> رفض
@@ -823,7 +833,6 @@ const MyTeam = () => {
       )}
 
       <style>{`
-        /* 📱 تحسينات الهواتف الذكية الشاملة */
         @media (max-width: 600px) {
             .my-team-container { padding: 8px !important; }
             .header-box { padding: 10px !important; }
@@ -838,11 +847,7 @@ const MyTeam = () => {
             .chips-container button { font-size: 10px !important; padding: 6px 10px !important; min-width: 100px !important; }
             .pending-section { padding: 15px !important; }
         }
-
-        /* منع التمرير الأفقي غير المرغوب فيه */
         body { overflow-x: hidden; }
-        
-        /* تجميل شريط التمرير للـ Chips */
         .chips-container::-webkit-scrollbar { display: none; }
       `}</style>
     </div>

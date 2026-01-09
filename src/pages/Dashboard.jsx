@@ -39,6 +39,7 @@ const Dashboard = () => {
   // 🆕 حالات ملفات الإكسل الجديدة (استيراد البيانات التاريخية)
   const [excelFile, setExcelFile] = useState(null); 
   const [penaltyExcelFile, setPenaltyExcelFile] = useState(null);
+  const [lineupExcel, setLineupExcel] = useState(null);
 
   // 🆕 ميزات إضافية: العداد والوميض
   const [deadlineData, setDeadlineData] = useState(null);
@@ -318,6 +319,22 @@ const Dashboard = () => {
       setMessage(err.response?.data?.message || 'فشل استيراد المخالفات');
     } finally { setIsSyncing(false); }
   };
+  
+  const handleImportLineupsExcel = async () => {
+    if (!lineupExcel) return alert("الرجاء اختيار ملف التشكيلات أولاً");
+    try {
+        setIsSyncing(true);
+        const formData = new FormData();
+        formData.append('file', lineupExcel);
+        const { data } = await API.post('/gameweek/import-lineups-excel', formData);
+        setMessage(data.message);
+        setLineupExcel(null);
+    } catch (err) {
+        setMessage('خطأ في استيراد التشكيلات');
+    } finally {
+        setIsSyncing(false);
+    }
+};
 
   const handleApproveManager = async (teamId) => { try { await API.put('/teams/approve-manager', { teamId }); setMessage('✅ تم الاعتماد'); fetchPendingTeams(); } catch (err) { setMessage('فشل'); } };
   
@@ -567,6 +584,26 @@ const Dashboard = () => {
                         <button onClick={handleImportExcel} disabled={!excelFile || isSyncing} style={{ padding: '5px 10px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>رفع</button>
                     </div>
                   </div>
+				  
+				  <div style={{ padding: '15px', border: '2px solid #38003c', borderRadius: '10px', marginTop: '10px', background: '#fff' }}>
+    <h3 style={{ color: '#38003c', marginTop: 0 }}><FaFileExcel /> استيراد التشكيلات والخواص</h3>
+    <p style={{ fontSize: '12px', color: '#666' }}>ارفع ملف Lineup.xlsx لتحديث تشكيلات الفرق والـ Chips آلياً.</p>
+    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <input 
+            type="file" 
+            accept=".xlsx, .xls, .csv" 
+            onChange={(e) => setLineupExcel(e.target.files[0])} 
+            style={{ fontSize: '12px' }}
+        />
+        <button 
+            onClick={handleImportLineupsExcel}
+            disabled={!lineupExcel || isSyncing}
+            style={{ padding: '8px 15px', background: '#38003c', color: '#00ff85', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}
+        >
+            {isSyncing ? 'جاري الرفع...' : 'رفع التشكيلات'}
+        </button>
+    </div>
+</div>
 
                   <div style={{ padding: '10px', border: '1px solid #d32f2f', borderRadius: '8px', background: '#ffebee' }}>
                     <label style={{ fontSize: '12px', fontWeight: 'bold', display: 'center', alignItems: 'center', gap: '5px', color: '#c62828', marginBottom: '5px' }}>
