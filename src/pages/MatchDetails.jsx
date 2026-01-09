@@ -7,11 +7,12 @@ import {
 } from "react-icons/fa";
 import html2canvas from 'html2canvas';
 
+// ✅ تعريف الخواص بألوان وأيقونات مميزة جداً
 const CHIPS_CONFIG = {
-    'tripleCaptain': { label: 'TRIPLE CAPTAIN', icon: <FaCrown />, color: '#ffd700', bg: 'rgba(255, 215, 0, 0.15)' },
-    'benchBoost': { label: 'BENCH BOOST', icon: <FaExchangeAlt />, color: '#00ff85', bg: 'rgba(0, 255, 133, 0.15)' },
-    'freeHit': { label: 'FREE HIT', icon: <FaTshirt />, color: '#00ccff', bg: 'rgba(0, 204, 255, 0.15)' },
-    'theBest': { label: 'THE BEST', icon: <FaStar />, color: '#ff00ff', bg: 'rgba(255, 0, 255, 0.15)' }
+    'tripleCaptain': { label: 'TRIPLE CAPTAIN', icon: <FaCrown />, color: '#ffd700', bg: 'rgba(255, 215, 0, 0.2)' },
+    'benchBoost': { label: 'BENCH BOOST', icon: <FaExchangeAlt />, color: '#00ff85', bg: 'rgba(0, 255, 133, 0.2)' },
+    'freeHit': { label: 'FREE HIT', icon: <FaTshirt />, color: '#00ccff', bg: 'rgba(0, 204, 255, 0.2)' },
+    'theBest': { label: 'THE BEST', icon: <FaStar />, color: '#ff00ff', bg: 'rgba(255, 0, 255, 0.2)' }
 };
 
 const SafeLogo = ({ url, size = 80, isLeague = false }) => {
@@ -32,8 +33,8 @@ const SafeLogo = ({ url, size = 80, isLeague = false }) => {
     }, [url, SERVER_URL]);
 
     return (
-        <div style={{ width: size, height: size, background: '#fff', borderRadius: isLeague ? '10px' : '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 20px rgba(0,0,0,0.1)', padding: '8px', border: '1.5px solid #f0f0f0' }}>
-            {imgSrc ? <img src={imgSrc} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="L" /> : <FaShieldAlt size={size * 0.6} color="#ccc" />}
+        <div style={{ width: size, height: size, background: '#fff', borderRadius: isLeague ? '10px' : '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 5px 15px rgba(0,0,0,0.1)', padding: '5px', border: '1px solid #f0f0f0', flexShrink: 0 }}>
+            {imgSrc ? <img src={imgSrc} style={{ width: '90%', height: '90%', objectFit: 'contain' }} alt="L" /> : <FaShieldAlt size={size * 0.5} color="#ccc" />}
         </div>
     );
 };
@@ -78,20 +79,6 @@ const MatchDetails = () => {
     const { fixture, homeLineup, awayLineup } = data;
     const maxRows = Math.max(homeLineup?.lineup?.length || 0, awayLineup?.lineup?.length || 0);
 
-    // ✅ مكون عرض الخاصية مع الحفاظ على المساحة ثابتة
-    const ChipContainer = ({ chipId }) => {
-        const hasChip = chipId && chipId !== 'none' && CHIPS_CONFIG[chipId];
-        return (
-            <div style={{ height: '35px', marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-                {hasChip ? (
-                    <div style={{ background: CHIPS_CONFIG[chipId].bg, color: CHIPS_CONFIG[chipId].color, padding: '4px 10px', borderRadius: '10px', fontSize: '10px', fontWeight: '1000', display: 'flex', alignItems: 'center', gap: '5px', border: `1px solid ${CHIPS_CONFIG[chipId].color}`, whiteSpace: 'nowrap' }}>
-                        {CHIPS_CONFIG[chipId].icon} {CHIPS_CONFIG[chipId].label}
-                    </div>
-                ) : null}
-            </div>
-        );
-    };
-
     const PlayerBox = ({ player, isHome, activeChip }) => {
         if (!player) return <div style={{ flex: 1 }}></div>;
         const raw = player.rawPoints || 0;
@@ -100,26 +87,25 @@ const MatchDetails = () => {
         const multiplier = player.isCaptain ? (activeChip === 'tripleCaptain' ? 3 : 2) : 1;
 
         return (
-            <div style={{ flex: 1, padding: '15px 12px', background: player.isStarter ? '#fff' : 'rgba(240, 240, 240, 0.6)', borderRadius: '20px', border: player.isStarter ? '2.5px solid #f0f0f0' : '1.5px dashed #ccc', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', flexDirection: isHome ? 'row' : 'row-reverse', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ position: 'relative' }}>
-                        <div style={{ width: '45px', height: '45px', borderRadius: '15px', background: isHome ? '#37003c' : '#00ff85', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <FaUserAlt color={isHome ? '#fff' : '#37003c'} size={22} />
+            <div style={{ flex: 1, padding: '12px 10px', background: player.isStarter ? '#fff' : 'rgba(245, 245, 245, 0.8)', borderRadius: '20px', border: player.isStarter ? '2px solid #f0f0f0' : '1.5px dashed #ccc', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: isHome ? 'row' : 'row-reverse', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: isHome ? '#37003c' : '#00ff85', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <FaUserAlt color={isHome ? '#fff' : '#37003c'} size={18} />
                         </div>
-                        {player.isCaptain && <div style={{ position: 'absolute', top: -8, right: -8, background: '#ffd700', borderRadius: '50%', padding: '3px', border: '2px solid #fff' }}><FaCrown size={12} color="#000" /></div>}
+                        {player.isCaptain && <div style={{ position: 'absolute', top: -5, right: -5, background: '#ffd700', borderRadius: '50%', padding: '2px', border: '1.5px solid #fff' }}><FaCrown size={10} color="#000" /></div>}
                     </div>
                     <div style={{ fontWeight: '1000', fontSize: '15px', color: '#1a1a1a', flex: 1, textAlign: isHome ? 'right' : 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {player.userId?.username}
                     </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid #f5f5f5', paddingTop: '10px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', textAlign: isHome ? 'right' : 'left' }}>
-                        <div style={{ fontSize: '14px', color: '#555', fontWeight: '1000' }}>RAW: {raw}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid #f5f5f5', paddingTop: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'right' }}>
+                        <div style={{ fontSize: '14px', color: '#444', fontWeight: '1000' }}>RAW: {raw}</div>
                         {hits > 0 && <div style={{ fontSize: '14px', color: '#ff1744', fontWeight: '1000' }}>HITS: -{hits}</div>}
-                        {player.isCaptain && <div style={{ fontSize: '11px', color: '#37003c', fontWeight: '1000', background:'#eee', padding:'2px 6px', borderRadius:'5px' }}>{multiplier === 3 ? 'TRIPLE' : 'X2'} CAPTAIN</div>}
                     </div>
                     <div style={{ textAlign: isHome ? 'left' : 'right' }}>
-                        <div style={{ fontSize: '34px', fontWeight: '1000', color: isHome ? '#37003c' : '#00a859', lineHeight: 1 }}>{final}</div>
+                        <div style={{ fontSize: '28px', fontWeight: '1000', color: isHome ? '#37003c' : '#00a859', lineHeight: 1 }}>{final}</div>
                     </div>
                 </div>
             </div>
@@ -127,87 +113,103 @@ const MatchDetails = () => {
     };
 
     return (
-        <div style={{ padding: '15px', background: '#f0f2f5', minHeight: '100vh', direction: 'rtl', fontFamily: 'Arial, sans-serif' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <button onClick={() => navigate(-1)} style={{ background: '#fff', border: 'none', padding: '12px 25px', borderRadius: '15px', fontWeight: '1000', color: '#37003c', fontSize: '16px' }}>⬅ عودة</button>
-                <button onClick={handleExportImage} disabled={exporting} style={{ background: '#37003c', color: '#00ff85', border: 'none', padding: '12px 25px', borderRadius: '15px', fontWeight: '1000', fontSize: '16px', display:'flex', alignItems:'center', gap:'10px' }}>
+        <div style={{ padding: '10px', background: '#f0f2f5', minHeight: '100vh', direction: 'rtl', fontFamily: 'Arial, sans-serif' }}>
+            {/* أزرار التحكم */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                <button onClick={() => navigate(-1)} style={{ background: '#fff', border: 'none', padding: '12px 20px', borderRadius: '15px', fontWeight: '1000', color: '#37003c', fontSize: '15px' }}>⬅ عودة</button>
+                <button onClick={handleExportImage} disabled={exporting} style={{ background: '#37003c', color: '#00ff85', border: 'none', padding: '12px 20px', borderRadius: '15px', fontWeight: '1000', fontSize: '15px', display:'flex', alignItems:'center', gap:'8px' }}>
                     {exporting ? <FaSpinner className="fa-spin" /> : <><FaCamera /> مشاركة</>}
                 </button>
             </div>
 
-            <div ref={matchRef} style={{ background: '#fff', borderRadius: '45px', overflow: 'hidden', boxShadow: '0 30px 60px rgba(0,0,0,0.15)' }}>
-                <div style={{ padding: '25px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', borderBottom: '2px solid #f8f8f8' }}>
-                    <SafeLogo url={leagueInfo?.logoUrl} size={50} isLeague={true} />
-                    <div style={{ fontWeight: '1000', fontSize: '22px', color: '#37003c' }}>{leagueInfo?.name?.toUpperCase() || 'FANTASY LEAGUE'}</div>
+            <div ref={matchRef} style={{ background: '#fff', borderRadius: '40px', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.12)' }}>
+                <div style={{ padding: '20px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', borderBottom: '2px solid #f0f0f0' }}>
+                    <SafeLogo url={leagueInfo?.logoUrl} size={45} isLeague={true} />
+                    <div style={{ fontWeight: '1000', fontSize: '20px', color: '#37003c' }}>{leagueInfo?.name?.toUpperCase()}</div>
                 </div>
 
-                <div style={{ background: 'linear-gradient(180deg, #37003c 0%, #1a001c 100%)', padding: '40px 10px', color: '#fff' }}>
-                    <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: '900', color: '#00ff85', marginBottom: '25px', letterSpacing: '3px' }}>GAMEWEEK {fixture.gameweek}</div>
+                <div style={{ background: 'linear-gradient(180deg, #37003c 0%, #150016 100%)', padding: '40px 10px', color: '#fff' }}>
+                    <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: '900', color: '#00ff85', marginBottom: '25px', letterSpacing: '2px' }}>GAMEWEEK {fixture.gameweek}</div>
                     
-                    {/* ✅ استخدام الـ Grid مع محاذاة رأسية دقيقة */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', alignItems: 'start', justifyItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-around' }}>
                         
-                        {/* المضيف */}
-                        <div style={{ textAlign: 'center', width: '100%' }}>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}><SafeLogo url={fixture.homeTeamId?.logoUrl} size={90} /></div>
-                            <div style={{ marginTop: '15px', fontSize: '18px', fontWeight: '1000', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{fixture.homeTeamId?.name}</div>
-                            <ChipContainer chipId={homeLineup?.activeChip} />
+                        {/* صاحب الأرض */}
+                        <div style={{ flex: 1, textAlign: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center' }}><SafeLogo url={fixture.homeTeamId?.logoUrl} size={75} /></div>
+                            <div style={{ marginTop: '12px', fontSize: '16px', fontWeight: '1000', minHeight: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{fixture.homeTeamId?.name}</div>
+                            {/* ✅ كبسولة الخاصية المحسنة */}
+                            <div style={{ height: '35px', marginTop: '10px', display: 'flex', justifyContent: 'center' }}>
+                                {homeLineup?.activeChip && homeLineup.activeChip !== 'none' && (
+                                    <div style={{ background: CHIPS_CONFIG[homeLineup.activeChip].bg, color: CHIPS_CONFIG[homeLineup.activeChip].color, padding: '5px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: '1000', display: 'flex', alignItems: 'center', gap: '6px', border: `1px solid ${CHIPS_CONFIG[homeLineup.activeChip].color}`, boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
+                                        {CHIPS_CONFIG[homeLineup.activeChip].icon} {CHIPS_CONFIG[homeLineup.activeChip].label}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* النتيجة */}
-                        <div style={{ textAlign: 'center', width: '100%', paddingTop: '15px' }}>
-                            <div style={{ fontSize: '85px', fontWeight: '1000', letterSpacing: '-5px', display:'flex', justifyContent:'center', alignItems:'center', gap:'12px', lineHeight: '1' }}>
-                                <span>{fixture.awayScore}</span>
-                                <span style={{ opacity: 0.2, fontSize:'45px' }}>:</span>
+                        <div style={{ flex: 1.2, textAlign: 'center', paddingTop: '10px' }}>
+                            <div style={{ fontSize: '75px', fontWeight: '1000', letterSpacing: '-3px', display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', lineHeight: '1' }}>
                                 <span>{fixture.homeScore}</span>
+                                <span style={{ opacity: 0.2, fontSize:'40px' }}>:</span>
+                                <span>{fixture.awayScore}</span>
                             </div>
-                            <div style={{ color: '#00ff85', fontSize: '14px', fontWeight: '1000', letterSpacing: '2px', marginTop: '15px' }}>FINAL RESULT</div>
+                            <div style={{ color: '#00ff85', fontSize: '12px', fontWeight: '1000', marginTop: '15px' }}>FINAL RESULT</div>
                         </div>
 
                         {/* الضيف */}
-                        <div style={{ textAlign: 'center', width: '100%' }}>
-                            <div style={{ display: 'flex', justifyContent: 'center' }}><SafeLogo url={fixture.awayTeamId?.logoUrl} size={90} /></div>
-                            <div style={{ marginTop: '15px', fontSize: '18px', fontWeight: '1000', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{fixture.awayTeamId?.name}</div>
-                            <ChipContainer chipId={awayLineup?.activeChip} />
+                        <div style={{ flex: 1, textAlign: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center' }}><SafeLogo url={fixture.awayTeamId?.logoUrl} size={75} /></div>
+                            <div style={{ marginTop: '12px', fontSize: '16px', fontWeight: '1000', minHeight: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{fixture.awayTeamId?.name}</div>
+                            {/* ✅ كبسولة الخاصية المحسنة */}
+                            <div style={{ height: '35px', marginTop: '10px', display: 'flex', justifyContent: 'center' }}>
+                                {awayLineup?.activeChip && awayLineup.activeChip !== 'none' && (
+                                    <div style={{ background: CHIPS_CONFIG[awayLineup.activeChip].bg, color: CHIPS_CONFIG[awayLineup.activeChip].color, padding: '5px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: '1000', display: 'flex', alignItems: 'center', gap: '6px', border: `1px solid ${CHIPS_CONFIG[awayLineup.activeChip].color}`, boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
+                                        {CHIPS_CONFIG[awayLineup.activeChip].icon} {CHIPS_CONFIG[awayLineup.activeChip].label}
+                                    </div>
+                                )}
+                            </div>
                         </div>
+
                     </div>
                 </div>
 
                 <div style={{ padding: '30px 15px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 10px 15px', marginBottom: '15px' }}>
-                        <div style={{ fontWeight: '1000', fontSize: '17px', color: '#37003c' }}>📍 HOME</div>
-                        <div style={{ fontWeight: '1000', fontSize: '17px', color: '#00a859' }}>AWAY 📍</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 10px 15px', borderBottom: '2.5px solid #f0f0f0', marginBottom: '20px' }}>
+                        <div style={{ fontWeight: '1000', fontSize: '16px', color: '#37003c' }}>📍 HOME</div>
+                        <div style={{ fontWeight: '1000', fontSize: '16px', color: '#00a859' }}>AWAY 📍</div>
                     </div>
 
-                    {Array.from({ length: maxRows }).map((_, i) => {
-                        const hPlayer = homeLineup?.lineup?.[i];
-                        const aPlayer = awayLineup?.lineup?.[i];
-                        const showBenchHeader = (hPlayer && !hPlayer.isStarter && (i === 0 || homeLineup.lineup[i-1].isStarter)) || 
-                                              (aPlayer && !aPlayer.isStarter && (i === 0 || awayLineup.lineup[i-1].isStarter));
-
-                        return (
-                            <div key={i}>
-                                {showBenchHeader && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', margin: '35px 0 20px' }}>
-                                        <div style={{ height: '3px', flex: 1, background: '#f0f0f0' }}></div>
-                                        <div style={{ fontWeight: '1000', fontSize: '16px', color: '#aaa', letterSpacing: '2px' }}>SUBSTITUTES / BENCH</div>
-                                        <div style={{ height: '3px', flex: 1, background: '#f0f0f0' }}></div>
-                                    </div>
-                                )}
-                                <div style={{ display: 'flex', gap: '12px', marginBottom: '15px' }}>
-                                    <PlayerBox player={hPlayer} isHome={true} activeChip={homeLineup?.activeChip} />
-                                    <PlayerBox player={aPlayer} isHome={false} activeChip={awayLineup?.activeChip} />
+                    {Array.from({ length: maxRows }).map((_, i) => (
+                        <div key={i} style={{ marginBottom: '15px' }}>
+                            {(homeLineup?.lineup?.[i] && !homeLineup.lineup[i].isStarter && (i === 0 || homeLineup.lineup[i-1].isStarter)) && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', margin: '35px 0 20px' }}>
+                                    <div style={{ height: '2.5px', flex: 1, background: '#eee' }}></div>
+                                    <div style={{ fontWeight: '1000', fontSize: '14px', color: '#aaa', letterSpacing: '2px' }}>BENCH</div>
+                                    <div style={{ height: '2.5px', flex: 1, background: '#eee' }}></div>
                                 </div>
+                            )}
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <PlayerBox player={homeLineup?.lineup?.[i]} isHome={true} activeChip={homeLineup?.activeChip} />
+                                <PlayerBox player={awayLineup?.lineup?.[i]} isHome={false} activeChip={awayLineup?.activeChip} />
                             </div>
-                        );
-                    })}
+                        </div>
+                    ))}
                 </div>
 
-                <div style={{ padding: '40px', textAlign: 'center', background: '#f9f9f9', borderTop: '2px solid #eee' }}>
-                    <div style={{ fontWeight: '1000', fontSize: '17px', color: '#37003c', letterSpacing: '2px' }}>{leagueInfo?.name?.toUpperCase() || 'FANTASY LEAGUE'} PRO</div>
+                <div style={{ padding: '35px', textAlign: 'center', background: '#f9f9f9', borderTop: '2px solid #eee' }}>
+                    <div style={{ fontWeight: '1000', fontSize: '16px', color: '#37003c', opacity: 0.6 }}>{leagueInfo?.name?.toUpperCase()} OFFICIAL</div>
                 </div>
             </div>
-            <style>{` .fa-spin { animation: spin 2s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } } `}</style>
+
+            <style>{`
+                .fa-spin { animation: spin 2s linear infinite; }
+                @keyframes spin { 100% { transform: rotate(360deg); } }
+                @media (max-width: 600px) {
+                    div[style*="font-size: 75px"] { font-size: 60px !important; }
+                    div[style*="font-size: 28px"] { font-size: 24px !important; }
+                }
+            `}</style>
         </div>
     );
 };
