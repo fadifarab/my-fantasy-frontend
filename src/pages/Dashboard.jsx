@@ -72,8 +72,31 @@ const Dashboard = () => {
         setDeadlineData(data);
     } catch (err) { console.error("Deadline error"); }
   };
-
+  
   const checkIfLineupNeeded = async () => {
+    try {
+        // 1. جلب حالة الجولات لمعرفة الجولة القادمة بدقة
+        const { data: status } = await API.get('/gameweek/status');
+        const nextGw = status.nextGwId;
+
+        // 2. جلب بيانات التشكيلة لهذه الجولة تحديداً
+        const { data: teamGwData } = await API.get(`/gameweek/team-data/${user.teamId}/${nextGw}`);
+
+        // 3. المنطق الصحيح:
+        // إذا لم تكن هناك بيانات (noData) أو كانت التشكيلة موروثة (isInherited)
+        // فهذا يعني أن المناجير لم يدخل ويضغط "حفظ" لهذه الجولة بعد.
+        if (!teamGwData || teamGwData.noData || teamGwData.isInherited === true) {
+            setNeedsLineupUpdate(true);
+        } else {
+            setNeedsLineupUpdate(false);
+        }
+    } catch (err) {
+        // في حال فشل الطلب أو عدم وجود سجل نهائياً في الداتابيز
+        setNeedsLineupUpdate(true);
+    }
+};
+
+  /*const checkIfLineupNeeded = async () => {
     try {
         const { data: status } = await API.get('/gameweek/status');
         const nextGw = status.nextGwId || (status.id + 1);
@@ -88,7 +111,7 @@ const Dashboard = () => {
             setNeedsLineupUpdate(true);
         }
     }
-  };
+  };*/
 
   useEffect(() => {
     if (!deadlineData) return;
