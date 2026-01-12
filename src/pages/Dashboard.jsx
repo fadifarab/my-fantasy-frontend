@@ -50,7 +50,7 @@ const Dashboard = () => {
   // 🛠 إصلاح SERVER_URL لضمان عمل اللوغو على كل البيئات
   const SERVER_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000' : ''; 
 
-  useEffect(() => {
+  /*useEffect(() => {
     fetchPLTeams();
     fetchMyLeagueData();
     fetchDeadlineStatus(); // جلب الديدلاين
@@ -63,7 +63,25 @@ const Dashboard = () => {
         }
     }
     if (user.leagueId) fetchLeagueTeams();
-  }, [user]);
+  }, [user]);*/
+  
+  useEffect(() => {
+    fetchPLTeams();
+    fetchMyLeagueData();
+    fetchDeadlineStatus();
+    
+    // إذا كان المستخدم في دوري، نحاول جلب تفاصيل فريقه فوراً
+    // حتى لو لم يكن teamId موجوداً في الكاش المحلي (localStorage)
+    if (user.leagueId) {
+        fetchLeagueTeams();
+        fetchMyTeamDetails(); // هذه ستجلب الفريق سواء كنت مناجير أو لاعب
+    }
+
+    if (user.teamId) {
+        checkMyTeamStatus();
+        fetchNextOpponent(); 
+    }
+}, [user]);
 
   // دالة العداد والإشعار (إضافة برمجية)
   const fetchDeadlineStatus = async () => {
@@ -73,7 +91,7 @@ const Dashboard = () => {
     } catch (err) { console.error("Deadline error"); }
   };
   
-  const checkIfLineupNeeded = async () => {
+  /*const checkIfLineupNeeded = async () => {
     try {
         // 1. جلب حالة الجولات لمعرفة الجولة القادمة بدقة
         const { data: status } = await API.get('/gameweek/status');
@@ -92,6 +110,29 @@ const Dashboard = () => {
         }
     } catch (err) {
         // في حال فشل الطلب أو عدم وجود سجل نهائياً في الداتابيز
+        setNeedsLineupUpdate(true);
+    }
+};*/
+
+const checkIfLineupNeeded = async () => {
+    try {
+        // ✅ الحل الأقوى: نأخذ الـ teamId من بيانات الفريق المجلوبة من السيرفر
+        // لأنها دائمًا محدثة، بينما user.teamId قد يكون قديمًا في الكاش
+        const currentTeamId = user?.teamId || myTeamData?._id;
+
+        if (!currentTeamId || currentTeamId === 'created' || currentTeamId === 'joined') return;
+
+        const { data: status } = await API.get('/gameweek/status');
+        const nextGw = status.nextGwId;
+
+        const { data: teamGwData } = await API.get(`/gameweek/team-data/${currentTeamId}/${nextGw}`);
+
+        if (!teamGwData || teamGwData.noData || teamGwData.isInherited === true) {
+            setNeedsLineupUpdate(true);
+        } else {
+            setNeedsLineupUpdate(false);
+        }
+    } catch (err) {
         setNeedsLineupUpdate(true);
     }
 };

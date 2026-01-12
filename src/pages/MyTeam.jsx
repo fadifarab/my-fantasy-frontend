@@ -26,6 +26,9 @@ const MyTeam = () => {
   const [isEditable, setIsEditable] = useState(false);
   const [isDeadlinePassed, setIsDeadlinePassed] = useState(false);
 
+  // سجل الخواص الجديد
+  const [chipsHistory, setChipsHistory] = useState({ p1: {}, p2: {} });
+
   // تعريف أقلام اللعبة بالإنجليزية (متوافق مع الباكند)
   const chips = [
     { id: 'none', label: 'No Chip', icon: null, color: '#f5f5f5' },
@@ -122,6 +125,21 @@ const MyTeam = () => {
         setLineup(initialLineup);
         // ✅ تحديث قيمة الخاصية حتى لو لم يكن مناجيراً لضمان ظهورها للجميع
         setActiveChip(data.activeChip || 'none');
+
+        // جلب سجل الخواص
+        try {
+            const historyRes = await API.get(`/leagues/team-history-full/${data._id}`);
+            const usedChips = { p1: {}, p2: {} };
+            if (historyRes.data.history) {
+                historyRes.data.history.forEach(gw => {
+                    if (gw.activeChip && gw.activeChip !== 'none') {
+                        if (gw.gameweek <= 19) usedChips.p1[gw.activeChip] = gw.gameweek;
+                        else usedChips.p2[gw.activeChip] = gw.gameweek;
+                    }
+                });
+            }
+            setChipsHistory(usedChips);
+        } catch (e) { console.error(e); }
         
         // إذا كان THE BEST مفعلاً والديدلاين انتهى، اعرض رسالة توضيحية
         if (data.activeChip === 'theBest' && deadlinePassed) {
@@ -425,6 +443,27 @@ const MyTeam = () => {
         </div>
       )}
 
+      {/* سجل الخواص المستعملة (ذهاب وإياب) - يظهر للجميع */}
+      <div style={{ background: '#fff', padding: '15px', borderRadius: '15px', marginBottom: '15px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#38003c', marginBottom: '10px', textAlign: 'center', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>📊 سجل الخواص المستعملة</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+              {chips.filter(c => c.id !== 'none').map(chip => {
+                  const gwP1 = chipsHistory.p1[chip.id];
+                  const gwP2 = chipsHistory.p2[chip.id];
+                  return (
+                      <div key={chip.id} style={{ display: 'flex', gap: '4px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: gwP1 ? '#38003c' : '#eee', color: gwP1 ? '#fff' : '#aaa', padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 'bold' }}>
+                              {chip.icon} {chip.label} (ذهاب) {gwP1 && `[${gwP1}]`}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: gwP2 ? '#00ff87' : '#eee', color: gwP2 ? '#38003c' : '#aaa', padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: 'bold' }}>
+                              {gwP2 && `[${gwP2}]`} (إياب)
+                          </div>
+                      </div>
+                  );
+              })}
+          </div>
+      </div>
+
       <div className="main-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
         
         {/* Pitch Area */}
@@ -457,48 +496,64 @@ const MyTeam = () => {
                         )}
                     </div>
                     
-                    {chips.map(chip => (
-                        <button 
-                            key={chip.id} 
-                            onClick={() => {
-                                if (isEditable) {
-                                    if (chip.id === 'none' && activeChip === 'theBest') {
-                                        const confirmCancel = window.confirm(
-                                            'هل تريد إلغاء تفعيل خاصية "The Best"؟\n\n' +
-                                            'إذا ألغيت التفعيل، لن يتم اختيار الكابتن تلقائياً بناءً على النقاط.'
-                                        );
-                                        if (!confirmCancel) return;
+                    {chips.map(chip => {
+                        // ✅ المنطق الجديد: فحص هل الخاصية مستعملة في المرحلة الحالية
+                        const usedInP1 = !!chipsHistory.p1[chip.id];
+                        const usedInP2 = !!chipsHistory.p2[chip.id];
+                        
+                        // تحديد هل الجولة المختارة حالياً في الذهاب أم الإياب
+                        const isCurrentInP1 = selectedGW <= 19;
+                        
+                        // الخاصية تكون معطلة إذا استُخدمت في المرحلة الحالية "وليس" في الجولة المختارة نفسها حالياً (للسماح بالتبديل)
+                        const isUsedInCurrentPhase = isCurrentInP1 ? usedInP1 : usedInP2;
+                        const usedInOtherGwInPhase = isUsedInCurrentPhase && (isCurrentInP1 ? chipsHistory.p1[chip.id] !== selectedGW : chipsHistory.p2[chip.id] !== selectedGW);
+                        
+                        const isDisabled = chip.id !== 'none' && usedInOtherGwInPhase;
+
+                        return (
+                            <button 
+                                key={chip.id} 
+                                disabled={isDisabled}
+                                onClick={() => {
+                                    if (isEditable) {
+                                        if (chip.id === 'none' && activeChip === 'theBest') {
+                                            const confirmCancel = window.confirm(
+                                                'هل تريد إلغاء تفعيل خاصية "The Best"؟\n\n' +
+                                                'إذا ألغيت التفعيل، لن يتم اختيار الكابتن تلقائياً بناءً على النقاط.'
+                                            );
+                                            if (!confirmCancel) return;
+                                        }
+                                        setActiveChip(chip.id);
                                     }
-                                    setActiveChip(chip.id);
-                                }
-                            }} 
-                            style={{ 
-                                padding: '8px 15px', 
-                                borderRadius: '20px', 
-                                border: activeChip === chip.id ? `2px solid ${chip.color}` : '1px solid #ddd', 
-                                cursor: isEditable ? 'pointer' : 'not-allowed', 
-                                fontWeight: 'bold', 
-                                fontSize: '12px',
-                                backgroundColor: activeChip === chip.id ? chip.color : '#f5f5f5', 
-                                color: activeChip === chip.id ? 
-                                    (chip.id === 'theBest' ? 'white' : '#37003c') : 
-                                    '#555', 
-                                opacity: isEditable ? 1 : 0.6, 
-                                whiteSpace: 'nowrap',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                minWidth: '120px',
-                                justifyContent: 'center'
-                            }}>
-                            {chip.icon}
-                            {chip.label}
-                        </button>
-                    ))}
+                                }} 
+                                style={{ 
+                                    padding: '8px 15px', 
+                                    borderRadius: '20px', 
+                                    border: activeChip === chip.id ? `2px solid ${chip.color}` : '1px solid #ddd', 
+                                    cursor: isDisabled ? 'not-allowed' : (isEditable ? 'pointer' : 'not-allowed'), 
+                                    fontWeight: 'bold', 
+                                    fontSize: '12px',
+                                    backgroundColor: isDisabled ? '#e0e0e0' : (activeChip === chip.id ? chip.color : '#f5f5f5'), 
+                                    color: isDisabled ? '#9e9e9e' : (activeChip === chip.id ? 
+                                        (chip.id === 'theBest' ? 'white' : '#37003c') : 
+                                        '#555'), 
+                                    opacity: isDisabled ? 0.6 : (isEditable ? 1 : 0.6), 
+                                    whiteSpace: 'nowrap',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                    minWidth: '120px',
+                                    justifyContent: 'center'
+                                }}>
+                                {chip.icon}
+                                {chip.label}
+                                {isDisabled && <FaLock size={10} style={{marginRight: '4px'}} />}
+                            </button>
+                        );
+                    })}
                 </div>
             )}
 
-            {/* ✅ الجزء الجديد: إظهار الخاصية للجميع (لاعبين ومناجير) في الجولات السابقة */}
             {!isEditable && activeChip !== 'none' && (
                 <div style={{
                     marginBottom: '15px',
@@ -529,7 +584,6 @@ const MyTeam = () => {
                 position: 'relative', borderRadius: '15px', overflow: 'hidden', minHeight: '550px', border: '4px solid #fff', boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
                 background: `repeating-linear-gradient(0deg, #419d36, #419d36 40px, #4caf50 40px, #4caf50 80px)` 
             }}>
-                {/* Pitch Markings */}
                 <div style={{ position: 'absolute', top: '10px', left: '10px', right: '10px', bottom: '10px', border: '1px solid rgba(255,255,255,0.3)', pointerEvents: 'none' }}></div>
                 <div style={{ position: 'absolute', top: '50%', left: '10px', right: '10px', height: '1px', backgroundColor: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }}></div>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '100px', height: '100px', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '50%', pointerEvents: 'none' }}></div>
@@ -544,7 +598,7 @@ const MyTeam = () => {
                                         <div style={{ position: 'absolute', top: '-15px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
                                             <FaCrown 
                                                 size={20} 
-                                                color={activeChip === 'tripleCaptain' ? "#00ff85" : "#ffd700"} 
+                                                color={activeChip === 'tripleCaptain' ? "#00ff87" : "#ffd700"} 
                                                 style={{ 
                                                     filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.8))',
                                                     border: activeChip === 'theBest' ? '2px solid #9c27b0' : 'none',
@@ -553,7 +607,6 @@ const MyTeam = () => {
                                                     backgroundColor: activeChip === 'theBest' ? 'white' : 'transparent'
                                                 }} 
                                             />
-                                            {/* إضافة مؤشر Triple Captain x3 للجميع */}
                                             {!isEditable && activeChip === 'tripleCaptain' && (
                                                 <small style={{ display:'block', color:'#00ff85', fontSize:'10px', fontWeight:'bold', textShadow:'1px 1px 2px black', marginTop:'-5px' }}>x3</small>
                                             )}
@@ -679,7 +732,6 @@ const MyTeam = () => {
         </div>
       </div>
 
-      {/* طلبات الانضمام - تظهر فقط للمناجير */}
       {isManager && team.pendingMembers && team.pendingMembers.length > 0 && (
         <div className="pending-section" style={{
           marginTop: '30px',
