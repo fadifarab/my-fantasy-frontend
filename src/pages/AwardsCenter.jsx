@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { 
     FaTrophy, FaMedal, FaStar, FaArrowLeft, FaCrown, FaTshirt, 
-    FaCalendarAlt, FaChevronRight, FaChevronLeft, FaChartLine, FaSpinner, FaCog, FaHistory
+    FaCalendarAlt, FaChevronRight, FaChevronLeft, FaChartLine, FaSpinner, FaCog, FaHistory,
+    FaExclamationTriangle, FaRedo
 } from "react-icons/fa";
 import { TbSoccerField } from "react-icons/tb";
 
@@ -21,6 +22,7 @@ const AwardsCenter = () => {
     const [statsLoading, setStatsLoading] = useState(false);
     const [monthsList, setMonthsList] = useState([]);
     const [selectedMonthIndex, setSelectedMonthIndex] = useState(0);
+    const [error, setError] = useState(null);
 
     const [tactic, setTactic] = useState('433'); 
     const isAdmin = user?.role === 'admin';
@@ -49,10 +51,12 @@ const AwardsCenter = () => {
             try {
                 const statusRes = await API.get('/gameweek/status');
                 const currentGwId = statusRes.data.id || 1;
+                console.log('Current GW:', currentGwId);
                 setGw(currentGwId); 
 
                 const scheduleRes = await API.get('/leagues/schedule');
                 const schedule = scheduleRes.data;
+                console.log('Schedule:', schedule);
                 setMonthsList(schedule);
                 
                 if(schedule.length > 0) {
@@ -62,23 +66,44 @@ const AwardsCenter = () => {
                     });
                     setSelectedMonthIndex(currentMonthIdx !== -1 ? currentMonthIdx : schedule.length - 1);
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error('Init error:', e); 
+                setError('فشل تحميل البيانات الأساسية');
+            }
         };
         init();
     }, []);
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!user?.leagueId) return;
+            if (!user?.leagueId) {
+                console.log('No user or leagueId');
+                return;
+            }
             
-            if (activeTab === 'gameweek') await fetchAwards('gameweek', gw);
-            if (activeTab === 'season') await fetchAwards('season');
+            console.log(`Fetching data for tab: ${activeTab}, leagueId: ${user.leagueId}`);
+            
+            if (activeTab === 'gameweek') {
+                console.log(`Fetching gameweek ${gw} awards`);
+                await fetchAwards('gameweek', gw);
+            }
+            if (activeTab === 'season') {
+                console.log('Fetching season awards');
+                await fetchAwards('season');
+            }
             if (activeTab === 'month' && monthsList.length > 0) {
                 const range = monthsList[selectedMonthIndex]?.range;
+                console.log(`Fetching month awards for range: ${range}`);
                 if (range) await fetchAwards('month', range);
             }
-            if (activeTab === 'form') await fetchForm();
-            if (activeTab === 'stats') await fetchExtendedStats();
+            if (activeTab === 'form') {
+                console.log('Fetching form guide');
+                await fetchForm();
+            }
+            if (activeTab === 'stats') {
+                console.log('Fetching extended stats');
+                await fetchExtendedStats();
+            }
         };
         
         fetchData();
@@ -86,16 +111,44 @@ const AwardsCenter = () => {
 
     const fetchAwards = async (type, range) => {
         setLoading(true);
+        setError(null);
         try {
-            if (!user.leagueId) return; 
+            if (!user?.leagueId) {
+                console.error('No leagueId available for awards');
+                return;
+            } 
+            
+            console.log(`API Call: /leagues/awards with params:`, {
+                leagueId: user.leagueId,
+                type,
+                range
+            });
+            
             const { data } = await API.get(`/leagues/awards`, {
                 params: { leagueId: user.leagueId, type, range }
             });
-            setAwards(data);
-            if (data.tactic) setTactic(data.tactic);
+            
+            console.log(`Awards data received for ${type} ${range}:`, data);
+            
+            if (!data) {
+                console.warn('Empty awards data received');
+                setAwards({
+                    bestTeam: { name: 'لا توجد بيانات', totalScore: 0 },
+                    bestPlayer: { name: 'لا توجد بيانات', score: 0 },
+                    dreamTeam: []
+                });
+            } else {
+                setAwards(data);
+                if (data.tactic) setTactic(data.tactic);
+            }
         } catch (err) { 
-            console.error("Error fetching awards:", err); 
-            setAwards(null);
+            console.error("Error fetching awards:", err.response || err);
+            setError(`فشل تحميل بيانات ${type === 'gameweek' ? 'الجولة' : type === 'month' ? 'الشهر' : 'الموسم'}`);
+            setAwards({
+                bestTeam: { name: 'خطأ في التحميل', totalScore: 0 },
+                bestPlayer: { name: 'خطأ في التحميل', score: 0 },
+                dreamTeam: []
+            });
         } finally { 
             setLoading(false); 
         }
@@ -103,33 +156,55 @@ const AwardsCenter = () => {
 
     const fetchExtendedStats = async () => {
         setStatsLoading(true);
+        setError(null);
         try {
             if (!user?.leagueId) {
-                console.error('No leagueId available');
+                console.error('No leagueId available for stats');
+                setError('لا يوجد معرف للدوري');
                 return;
             }
+            
+            console.log('API Call: /leagues/extended-stats with leagueId:', user.leagueId);
             
             const { data } = await API.get('/leagues/extended-stats', {
                 params: { leagueId: user.leagueId }
             });
             
-            console.log('Stats data received:', data);
-            setStatsData(data || {
-                bestAttack: { name: '--', stats: { totalFplPoints: 0 } },
-                highestGwRecord: { teamName: '--', points: 0, gw: 0 },
-                longestUnbeaten: { teamName: '--', maxUnbeaten: 0 },
-                longestWinStreak: { teamName: '--', maxWinStreak: 0 },
-                longestLosing: { teamName: '--', maxLosing: 0 },
-                hallOfFame: []
-            });
+            console.log('Extended stats data received:', data);
+            
+            if (!data) {
+                console.warn('Empty stats data received');
+                setStatsData({
+                    bestAttack: { name: 'لا توجد بيانات', stats: { totalFplPoints: 0 } },
+                    highestGwRecord: { teamName: 'لا توجد بيانات', points: 0, gw: 0 },
+                    longestUnbeaten: { teamName: 'لا توجد بيانات', maxUnbeaten: 0 },
+                    longestWinStreak: { teamName: 'لا توجد بيانات', maxWinStreak: 0 },
+                    longestLosing: { teamName: 'لا توجد بيانات', maxLosing: 0 },
+                    hallOfFame: []
+                });
+            } else {
+                // التحقق من وجود البيانات وتنسيقها
+                const formattedData = {
+                    bestAttack: data.bestAttack || { name: 'لا توجد بيانات', stats: { totalFplPoints: 0 } },
+                    highestGwRecord: data.highestGwRecord || { teamName: 'لا توجد بيانات', points: 0, gw: 0 },
+                    longestUnbeaten: data.longestUnbeaten || { teamName: 'لا توجد بيانات', maxUnbeaten: 0 },
+                    longestWinStreak: data.longestWinStreak || { teamName: 'لا توجد بيانات', maxWinStreak: 0 },
+                    longestLosing: data.longestLosing || { teamName: 'لا توجد بيانات', maxLosing: 0 },
+                    hallOfFame: data.hallOfFame || []
+                };
+                
+                console.log('Formatted stats data:', formattedData);
+                setStatsData(formattedData);
+            }
         } catch (err) { 
-            console.error('Error fetching stats:', err);
+            console.error('Error fetching stats:', err.response || err);
+            setError('فشل تحميل الإحصائيات الموسعة');
             setStatsData({
-                bestAttack: { name: '--', stats: { totalFplPoints: 0 } },
-                highestGwRecord: { teamName: '--', points: 0, gw: 0 },
-                longestUnbeaten: { teamName: '--', maxUnbeaten: 0 },
-                longestWinStreak: { teamName: '--', maxWinStreak: 0 },
-                longestLosing: { teamName: '--', maxLosing: 0 },
+                bestAttack: { name: 'خطأ في التحميل', stats: { totalFplPoints: 0 } },
+                highestGwRecord: { teamName: 'خطأ في التحميل', points: 0, gw: 0 },
+                longestUnbeaten: { teamName: 'خطأ في التحميل', maxUnbeaten: 0 },
+                longestWinStreak: { teamName: 'خطأ في التحميل', maxWinStreak: 0 },
+                longestLosing: { teamName: 'خطأ في التحميل', maxLosing: 0 },
                 hallOfFame: []
             });
         } finally { 
@@ -139,14 +214,29 @@ const AwardsCenter = () => {
 
     const fetchForm = async () => {
         setLoading(true);
+        setError(null);
         try {
-            if (!user.leagueId) return;
+            if (!user?.leagueId) {
+                console.error('No leagueId available for form');
+                return;
+            }
+            
+            console.log('API Call: /leagues/form-guide with leagueId:', user.leagueId);
+            
             const { data } = await API.get(`/leagues/form-guide`, { 
                 params: { leagueId: user.leagueId } 
             });
+            
+            console.log('Form guide data received:', data);
+            
             setFormGuide(data || []);
+            
+            if (!data || data.length === 0) {
+                console.warn('Empty form guide data');
+            }
         } catch (err) { 
-            console.error(err); 
+            console.error('Error fetching form guide:', err.response || err); 
+            setError('فشل تحميل بيانات الفورمة');
             setFormGuide([]);
         } finally { 
             setLoading(false); 
@@ -321,9 +411,10 @@ const AwardsCenter = () => {
                     padding: '50px 20px', 
                     background: '#fff', 
                     borderRadius: '20px',
-                    color: '#666'
+                    color: '#666',
+                    marginTop: '20px'
                 }}>
-                    ⚽ لا توجد بيانات تشكيلة مثالية
+                    ⚽ لا توجد بيانات تشكيلة مثالية لهذه الفترة
                 </div>
             );
         }
@@ -453,50 +544,56 @@ const AwardsCenter = () => {
                         borderBottom: 'none' 
                     }}></div>
                     
-                    <DreamPlayer player={gk} />
+                    {gk && <DreamPlayer player={gk} />}
                     
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        gap: isMobile ? '4px' : '20px', 
-                        width: '100%', 
-                        flexWrap: 'wrap' 
-                    }}>
-                        {def.map((p, i) => (
-                            <DreamPlayer key={p.id || p._id || i} player={p} />
-                        ))}
-                    </div>
+                    {def.length > 0 && (
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            gap: isMobile ? '4px' : '20px', 
+                            width: '100%', 
+                            flexWrap: 'wrap' 
+                        }}>
+                            {def.map((p, i) => (
+                                <DreamPlayer key={p.id || p._id || i} player={p} />
+                            ))}
+                        </div>
+                    )}
                     
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        gap: isMobile ? '4px' : '20px', 
-                        width: '100%', 
-                        flexWrap: 'wrap' 
-                    }}>
-                        {mid.map((p, i) => (
-                            <DreamPlayer key={p.id || p._id || i} player={p} />
-                        ))}
-                    </div>
+                    {mid.length > 0 && (
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            gap: isMobile ? '4px' : '20px', 
+                            width: '100%', 
+                            flexWrap: 'wrap' 
+                        }}>
+                            {mid.map((p, i) => (
+                                <DreamPlayer key={p.id || p._id || i} player={p} />
+                            ))}
+                        </div>
+                    )}
                     
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        gap: isMobile ? '8px' : '40px', 
-                        width: '100%', 
-                        flexWrap: 'wrap' 
-                    }}>
-                        {fwd.map((p, idx) => (
-                            <DreamPlayer 
-                                key={p.id || p._id || idx} 
-                                player={p} 
-                                isCenterForward={
-                                    fwd.length === 3 ? idx === 1 : 
-                                    (fwd.length === 2 ? idx === 1 : true)
-                                } 
-                            />
-                        ))}
-                    </div>
+                    {fwd.length > 0 && (
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            gap: isMobile ? '8px' : '40px', 
+                            width: '100%', 
+                            flexWrap: 'wrap' 
+                        }}>
+                            {fwd.map((p, idx) => (
+                                <DreamPlayer 
+                                    key={p.id || p._id || idx} 
+                                    player={p} 
+                                    isCenterForward={
+                                        fwd.length === 3 ? idx === 1 : 
+                                        (fwd.length === 2 ? idx === 1 : true)
+                                    } 
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
                 
                 {bench.length > 0 && (
@@ -584,10 +681,22 @@ const AwardsCenter = () => {
                 color: color, 
                 fontWeight: '900' 
             }}>
-                {value || '0'} <small style={{ fontSize: '12px' }}>{subText}</small>
+                {value || 0} <small style={{ fontSize: '12px' }}>{subText}</small>
             </div>
         </div>
     );
+
+    // دالة لإعادة تحميل البيانات
+    const reloadData = () => {
+        setError(null);
+        if (activeTab === 'gameweek') fetchAwards('gameweek', gw);
+        if (activeTab === 'season') fetchAwards('season');
+        if (activeTab === 'month' && monthsList.length > 0) {
+            fetchAwards('month', monthsList[selectedMonthIndex]?.range);
+        }
+        if (activeTab === 'form') fetchForm();
+        if (activeTab === 'stats') fetchExtendedStats();
+    };
 
     return (
         <div style={{ 
@@ -632,9 +741,48 @@ const AwardsCenter = () => {
                 }}>
                     🏆 مركز الجوائز
                 </h1>
+                
+                {error && (
+                    <button 
+                        onClick={reloadData}
+                        style={{ 
+                            marginLeft: 'auto',
+                            background: '#38003c',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '8px 16px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontSize: '14px'
+                        }}
+                    >
+                        <FaRedo /> إعادة تحميل
+                    </button>
+                )}
             </div>
 
-            {/* شريط التبويبات المحسن */}
+            {/* رسالة الخطأ */}
+            {error && (
+                <div style={{ 
+                    background: '#ffebee', 
+                    border: '1px solid #ffcdd2', 
+                    color: '#c62828', 
+                    padding: '12px 16px', 
+                    borderRadius: '8px', 
+                    marginBottom: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                }}>
+                    <FaExclamationTriangle />
+                    <span>{error}</span>
+                </div>
+            )}
+
+            {/* شريط التبويبات */}
             <div className="tab-container" style={{ 
                 display: 'flex',
                 overflowX: 'auto',
@@ -650,7 +798,10 @@ const AwardsCenter = () => {
                 {['gameweek', 'month', 'season', 'stats', 'form'].map((tab) => (
                     <button 
                         key={tab}
-                        onClick={() => setActiveTab(tab)}
+                        onClick={() => {
+                            setActiveTab(tab);
+                            setError(null);
+                        }}
                         style={{ 
                             flex: '0 0 auto',
                             padding: isMobile ? '10px 14px' : '12px 18px',
@@ -856,7 +1007,7 @@ const AwardsCenter = () => {
                                     />
                                 </div>
                                 
-                                {awards?.dreamTeam ? (
+                                {awards?.dreamTeam && awards.dreamTeam.length > 0 ? (
                                     <DreamTeamPitch players={awards.dreamTeam} />
                                 ) : (
                                     <div style={{ 
@@ -867,6 +1018,9 @@ const AwardsCenter = () => {
                                         color: '#666'
                                     }}>
                                         ⚽ لا توجد بيانات للفترة المحددة
+                                        <p style={{ fontSize: '14px', marginTop: '10px' }}>
+                                            قد تكون الجولة/الشهر لم تبدأ بعد أو لا توجد بيانات متاحة
+                                        </p>
                                     </div>
                                 )}
                             </div>
@@ -903,14 +1057,14 @@ const AwardsCenter = () => {
                                         <StatCard 
                                             title="الأعلى جمعاً للنقاط (أفضل هجوم)" 
                                             name={statsData.bestAttack?.name} 
-                                            value={statsData.bestAttack?.stats?.totalFplPoints} 
+                                            value={statsData.bestAttack?.stats?.totalFplPoints || 0} 
                                             subText="نقطة FPL" 
                                             icon={<FaTshirt color="#38003c" size={isMobile ? 22 : 25}/>} 
                                         />
                                         <StatCard 
                                             title="أعلى نقاط في جولة واحدة" 
                                             name={statsData.highestGwRecord?.teamName} 
-                                            value={statsData.highestGwRecord?.points} 
+                                            value={statsData.highestGwRecord?.points || 0} 
                                             subText={`جولة ${statsData.highestGwRecord?.gw || '--'}`} 
                                             icon={<FaStar color="#ffd700" size={isMobile ? 22 : 25}/>} 
                                             color="#ffd700" 
@@ -918,7 +1072,7 @@ const AwardsCenter = () => {
                                         <StatCard 
                                             title="أطول سلسلة دون هزيمة" 
                                             name={statsData.longestUnbeaten?.teamName} 
-                                            value={statsData.longestUnbeaten?.maxUnbeaten} 
+                                            value={statsData.longestUnbeaten?.maxUnbeaten || 0} 
                                             subText="مباريات" 
                                             icon={<FaMedal color="#00c853" size={isMobile ? 22 : 25}/>} 
                                             color="#00c853" 
@@ -926,7 +1080,7 @@ const AwardsCenter = () => {
                                         <StatCard 
                                             title="أطول سلسلة انتصارات" 
                                             name={statsData.longestWinStreak?.teamName} 
-                                            value={statsData.longestWinStreak?.maxWinStreak} 
+                                            value={statsData.longestWinStreak?.maxWinStreak || 0} 
                                             subText="فوز متتالي" 
                                             icon={<FaTrophy color="#ff9800" size={isMobile ? 22 : 25}/>} 
                                             color="#ff9800" 
@@ -934,7 +1088,7 @@ const AwardsCenter = () => {
                                         <StatCard 
                                             title="أطول سلسلة هزائم" 
                                             name={statsData.longestLosing?.teamName} 
-                                            value={statsData.longestLosing?.maxLosing} 
+                                            value={statsData.longestLosing?.maxLosing || 0} 
                                             subText="خسارة متتالية" 
                                             icon={<FaHistory color="#d32f2f" size={isMobile ? 22 : 25}/>} 
                                             color="#d32f2f" 
@@ -1008,7 +1162,7 @@ const AwardsCenter = () => {
                                                             marginTop: '10px', 
                                                             fontWeight: 'bold' 
                                                         }}>
-                                                            {player.count} مرات ظهور
+                                                            {player.count || 0} مرات ظهور
                                                         </div>
                                                     </div>
                                                 ))}
@@ -1023,6 +1177,9 @@ const AwardsCenter = () => {
                                             color: '#666'
                                         }}>
                                             لا توجد بيانات للمشاهير بعد
+                                            <p style={{ fontSize: '14px', marginTop: '10px' }}>
+                                                سيتم عرض لاعبي قاعة المشاهير بعد ظهورهم في التشكيلة المثالية
+                                            </p>
                                         </div>
                                     )}
                                 </>
@@ -1158,6 +1315,9 @@ const AwardsCenter = () => {
                                     color: '#666' 
                                 }}>
                                     لا توجد بيانات فورمة متاحة
+                                    <p style={{ fontSize: '14px', marginTop: '10px' }}>
+                                        سيتم عرض فورمة الفرق بعد انتهاء المباريات
+                                    </p>
                                 </div>
                             )}
                         </div>
