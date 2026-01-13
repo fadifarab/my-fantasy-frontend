@@ -253,12 +253,83 @@ const AwardsCenter = () => {
                 <h1 style={{ margin: 0, color: '#38003c', fontSize: isMobile ? '22px' : '32px', fontWeight: '900' }}>🏆 مركز الجوائز</h1>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '25px', background: '#fff', padding: '6px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', overflowX: 'auto' }}>
-                {['gameweek', 'month', 'season', 'stats', 'form'].map((tab) => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: isMobile ? '0 0 auto' : 1, padding: isMobile ? '10px 16px' : '12px 24px', borderRadius: '12px', border: 'none', background: activeTab === tab ? '#38003c' : 'transparent', color: activeTab === tab ? '#00ff87' : '#555', fontSize: isMobile ? '13px' : '15px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {getTabIcon(tab)} {tab === 'gameweek' ? 'جولة' : tab === 'month' ? 'شهر' : tab === 'season' ? 'موسم' : tab === 'stats' ? 'إحصائيات' : 'فورمة'}
-                    </button>
-                ))}
+            {/* شريط العناوين المعدل للسطرين على الهواتف */}
+            <div style={{ 
+                display: 'flex', 
+                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'center', 
+                gap: isMobile ? '6px' : '8px', 
+                marginBottom: '25px', 
+                background: '#fff', 
+                padding: isMobile ? '10px 6px' : '6px', 
+                borderRadius: '16px', 
+                boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
+            }}>
+                {/* الصف الأول على الهاتف (3 أزرار) */}
+                <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    gap: isMobile ? '6px' : '8px',
+                    width: '100%'
+                }}>
+                    {['gameweek', 'month', 'season'].map((tab) => (
+                        <button 
+                            key={tab} 
+                            onClick={() => setActiveTab(tab)} 
+                            style={{ 
+                                flex: isMobile ? 1 : '0 0 auto', 
+                                padding: isMobile ? '10px 8px' : '12px 24px', 
+                                borderRadius: '12px', 
+                                border: 'none', 
+                                background: activeTab === tab ? '#38003c' : 'transparent', 
+                                color: activeTab === tab ? '#00ff87' : '#555', 
+                                fontSize: isMobile ? '12px' : '15px', 
+                                fontWeight: 'bold', 
+                                cursor: 'pointer', 
+                                whiteSpace: 'nowrap', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                minWidth: isMobile ? '0' : 'auto'
+                            }}
+                        >
+                            {getTabIcon(tab)} {tab === 'gameweek' ? 'جولة' : tab === 'month' ? 'شهر' : 'موسم'}
+                        </button>
+                    ))}
+                </div>
+                
+                {/* الصف الثاني على الهاتف (2 أزرار) */}
+                <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    gap: isMobile ? '6px' : '8px',
+                    width: '100%'
+                }}>
+                    {['stats', 'form'].map((tab) => (
+                        <button 
+                            key={tab} 
+                            onClick={() => setActiveTab(tab)} 
+                            style={{ 
+                                flex: isMobile ? 1 : '0 0 auto', 
+                                padding: isMobile ? '10px 8px' : '12px 24px', 
+                                borderRadius: '12px', 
+                                border: 'none', 
+                                background: activeTab === tab ? '#38003c' : 'transparent', 
+                                color: activeTab === tab ? '#00ff87' : '#555', 
+                                fontSize: isMobile ? '12px' : '15px', 
+                                fontWeight: 'bold', 
+                                cursor: 'pointer', 
+                                whiteSpace: 'nowrap', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center',
+                                minWidth: isMobile ? '0' : 'auto'
+                            }}
+                        >
+                            {getTabIcon(tab)} {tab === 'stats' ? 'إحصائيات' : 'فورمة'}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {loading ? (
