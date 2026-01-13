@@ -15,13 +15,12 @@ const AwardsCenter = () => {
     const [activeTab, setActiveTab] = useState('gameweek'); 
     const [gw, setGw] = useState(1); 
     const [awards, setAwards] = useState(null);
-    const [statsData, setStatsData] = useState(null); // ✅ حالة جديدة للإحصائيات
+    const [statsData, setStatsData] = useState(null);
     const [formGuide, setFormGuide] = useState([]);
     const [loading, setLoading] = useState(false);
     const [monthsList, setMonthsList] = useState([]);
     const [selectedMonthIndex, setSelectedMonthIndex] = useState(0);
 
-    // ✅ ميزة التكتيك: للأدمن فقط
     const [tactic, setTactic] = useState('433'); 
     const isAdmin = user?.role === 'admin';
 
@@ -74,7 +73,7 @@ const AwardsCenter = () => {
             fetchAwards('month', monthsList[selectedMonthIndex].range);
         }
         if (activeTab === 'form') fetchForm();
-        if (activeTab === 'stats') fetchExtendedStats(); // ✅ جلب الإحصائيات الموسعة
+        if (activeTab === 'stats') fetchExtendedStats();
     }, [activeTab, gw, selectedMonthIndex, monthsList]);
 
     const fetchAwards = async (type, range) => {
@@ -140,7 +139,7 @@ const AwardsCenter = () => {
                 background: colors[result] || '#9e9e9e', color: 'white', width: isMobile ? '20px' : '28px', 
                 height: isMobile ? '20px' : '28px', borderRadius: '4px', display: 'inline-flex', 
                 alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', 
-                fontSize: isMobile ? '10px' : '13px', margin: '0 2px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                fontSize: isMobile ? '10px' : '13px', margin: '0 1px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>{result}</span>
         );
     };
@@ -234,26 +233,24 @@ const AwardsCenter = () => {
         );
     };
 
-    // ✅ مكون بطاقة الإحصائيات الجمالي
     const StatCard = ({ title, name, value, subText, icon, color = "#38003c" }) => (
-        <div style={{ background: '#fff', padding: '20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', textAlign: 'center', borderRight: `6px solid ${color}` }}>
-            <div style={{ marginBottom: '10px' }}>{icon}</div>
-            <div style={{ fontSize: '12px', color: '#666', fontWeight: 'bold' }}>{title}</div>
-            <div style={{ fontSize: '18px', fontWeight: '900', color: '#333', margin: '5px 0' }}>{name}</div>
-            <div style={{ fontSize: '20px', color: color, fontWeight: '900' }}>{value} <small style={{ fontSize: '12px' }}>{subText}</small></div>
+        <div style={{ background: '#fff', padding: isMobile ? '15px' : '20px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', textAlign: 'center', borderRight: `6px solid ${color}`, marginBottom: isMobile ? '10px' : '0' }}>
+            <div style={{ marginBottom: '8px' }}>{icon}</div>
+            <div style={{ fontSize: isMobile ? '11px' : '12px', color: '#666', fontWeight: 'bold' }}>{title}</div>
+            <div style={{ fontSize: isMobile ? '14px' : '18px', fontWeight: '900', color: '#333', margin: '5px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
+            <div style={{ fontSize: isMobile ? '16px' : '20px', color: color, fontWeight: '900' }}>{value} <small style={{ fontSize: '10px' }}>{subText}</small></div>
         </div>
     );
 
     return (
-        <div style={{ padding: isMobile ? '12px' : '30px', background: '#f8f9fb', minHeight: '100vh', direction: 'rtl' }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '25px', gap: '15px' }}>
-                <button onClick={() => navigate('/dashboard')} style={{ background: '#fff', border: '1px solid #eee', width: '45px', height: '45px', borderRadius: '12px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color: '#38003c' }}>
-                    <FaArrowLeft size={20} />
+        <div style={{ padding: isMobile ? '10px' : '30px', background: '#f8f9fb', minHeight: '100vh', direction: 'rtl', overflowX: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: isMobile ? '15px' : '25px', gap: isMobile ? '10px' : '15px' }}>
+                <button onClick={() => navigate('/dashboard')} style={{ background: '#fff', border: '1px solid #eee', width: isMobile ? '40px' : '45px', height: isMobile ? '40px' : '45px', borderRadius: '12px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color: '#38003c', flexShrink: 0 }}>
+                    <FaArrowLeft size={isMobile ? 18 : 20} />
                 </button>
-                <h1 style={{ margin: 0, color: '#38003c', fontSize: isMobile ? '22px' : '32px', fontWeight: '900' }}>🏆 مركز الجوائز</h1>
+                <h1 style={{ margin: 0, color: '#38003c', fontSize: isMobile ? '18px' : '32px', fontWeight: '900', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🏆 مركز الجوائز</h1>
             </div>
 
-            {/* شريط العناوين المعدل للسطرين على الهواتف */}
             <div style={{ 
                 display: 'flex', 
                 flexDirection: isMobile ? 'column' : 'row',
@@ -265,7 +262,6 @@ const AwardsCenter = () => {
                 borderRadius: '16px', 
                 boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
             }}>
-                {/* الصف الأول على الهاتف (3 أزرار) */}
                 <div style={{ 
                     display: 'flex', 
                     justifyContent: 'center', 
@@ -298,7 +294,6 @@ const AwardsCenter = () => {
                     ))}
                 </div>
                 
-                {/* الصف الثاني على الهاتف (2 أزرار) */}
                 <div style={{ 
                     display: 'flex', 
                     justifyContent: 'center', 
@@ -335,59 +330,56 @@ const AwardsCenter = () => {
             {loading ? (
                 <div style={{ textAlign:'center', padding: '100px 20px' }}><FaSpinner className="spin" size={40} color="#38003c" /></div>
             ) : (
-                <div className="content-area">
-                    {/* محتوى الجولة، الشهر، الموسم */}
+                <div className="content-area" style={{ width: '100%', maxWidth: '100%' }}>
                     {(activeTab === 'gameweek' || activeTab === 'month' || activeTab === 'season') && (
                         <>
                             {activeTab === 'gameweek' && (
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', marginBottom: '30px' }}>
-                                    <button onClick={() => setGw(g => Math.max(1, g - 1))} style={{ background: '#fff', border: '1px solid #eee', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FaChevronRight /></button>
-                                    <div style={{ background: 'linear-gradient(135deg, #38003c, #5c0062)', color: '#00ff87', padding: '10px 40px', borderRadius: '14px', fontWeight: '900', fontSize: '20px', minWidth: '160px', textAlign: 'center' }}>الجولة {gw}</div>
-                                    <button onClick={() => setGw(g => Math.min(38, g + 1))} style={{ background: '#fff', border: '1px solid #eee', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FaChevronLeft /></button>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobile ? '10px' : '20px', marginBottom: isMobile ? '20px' : '30px' }}>
+                                    <button onClick={() => setGw(g => Math.max(1, g - 1))} style={{ background: '#fff', border: '1px solid #eee', width: isMobile ? '35px' : '40px', height: isMobile ? '35px' : '40px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><FaChevronRight /></button>
+                                    <div style={{ background: 'linear-gradient(135deg, #38003c, #5c0062)', color: '#00ff87', padding: isMobile ? '8px 20px' : '10px 40px', borderRadius: '14px', fontWeight: '900', fontSize: isMobile ? '16px' : '20px', minWidth: isMobile ? '120px' : '160px', textAlign: 'center', flexShrink: 0 }}>الجولة {gw}</div>
+                                    <button onClick={() => setGw(g => Math.min(38, g + 1))} style={{ background: '#fff', border: '1px solid #eee', width: isMobile ? '35px' : '40px', height: isMobile ? '35px' : '40px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><FaChevronLeft /></button>
                                 </div>
                             )}
                             {activeTab === 'month' && monthsList.length > 0 && (
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginBottom: '30px' }}>
-                                    <button onClick={() => changeMonth(-1)} disabled={selectedMonthIndex === 0} style={{ background: '#fff', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', opacity: selectedMonthIndex === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' }}><FaChevronRight /></button>
-                                    <div style={{ textAlign: 'center', background: 'white', padding: '12px 30px', borderRadius: '16px', border: '2px solid #38003c', minWidth: '220px' }}>
-                                        <div style={{ fontWeight: '900', color: '#38003c', fontSize: '18px' }}>{monthsList[selectedMonthIndex]?.name}</div>
-                                        <div style={{ fontSize: '12px', color: '#666', fontWeight: 'bold' }}>ج {monthsList[selectedMonthIndex]?.range.replace(',', ' - ')}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobile ? '8px' : '15px', marginBottom: isMobile ? '20px' : '30px' }}>
+                                    <button onClick={() => changeMonth(-1)} disabled={selectedMonthIndex === 0} style={{ background: '#fff', width: isMobile ? '35px' : '40px', height: isMobile ? '35px' : '40px', borderRadius: '50%', cursor: selectedMonthIndex === 0 ? 'default' : 'pointer', opacity: selectedMonthIndex === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', flexShrink: 0 }}><FaChevronRight /></button>
+                                    <div style={{ textAlign: 'center', background: 'white', padding: isMobile ? '10px 15px' : '12px 30px', borderRadius: '16px', border: '2px solid #38003c', minWidth: isMobile ? '160px' : '220px', flexShrink: 0 }}>
+                                        <div style={{ fontWeight: '900', color: '#38003c', fontSize: isMobile ? '14px' : '18px' }}>{monthsList[selectedMonthIndex]?.name}</div>
+                                        <div style={{ fontSize: isMobile ? '10px' : '12px', color: '#666', fontWeight: 'bold', marginTop: '2px' }}>ج {monthsList[selectedMonthIndex]?.range.replace(',', ' - ')}</div>
                                     </div>
-                                    <button onClick={() => changeMonth(1)} disabled={selectedMonthIndex === monthsList.length - 1} style={{ background: '#fff', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', opacity: selectedMonthIndex === monthsList.length - 1 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' }}><FaChevronLeft /></button>
+                                    <button onClick={() => changeMonth(1)} disabled={selectedMonthIndex === monthsList.length - 1} style={{ background: '#fff', width: isMobile ? '35px' : '40px', height: isMobile ? '35px' : '40px', borderRadius: '50%', cursor: selectedMonthIndex === monthsList.length - 1 ? 'default' : 'pointer', opacity: selectedMonthIndex === monthsList.length - 1 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', flexShrink: 0 }}><FaChevronLeft /></button>
                                 </div>
                             )}
-                            <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', marginBottom: '25px' }}>
-                                    <StatCard title={activeTab === 'season' ? 'أفضل فريق في الموسم (جمع النقاط)' : 'أفضل فريق'} name={awards?.bestTeam?.name || '--'} value={awards?.bestTeam?.totalScore || '0'} subText="نقطة" icon={<FaTrophy size={25} color="#00c853"/>} color="#00c853" />
-                                    <StatCard title={activeTab === 'season' ? 'أفضل لاعب في الموسم (الكرة الذهبية)' : 'أفضل لاعب(MVP)'} name={awards?.bestPlayer?.name || '--'} value={awards?.bestPlayer?.score || '0'} subText="نقطة" icon={<FaStar size={25} color="#2979ff"/>} color="#2979ff" />
+                            <div style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '12px' : '20px', marginBottom: isMobile ? '15px' : '25px' }}>
+                                    <StatCard title={activeTab === 'season' ? 'أفضل فريق في الموسم (جمع النقاط)' : 'أفضل فريق'} name={awards?.bestTeam?.name || '--'} value={awards?.bestTeam?.totalScore || '0'} subText="نقطة" icon={<FaTrophy size={isMobile ? 20 : 25} color="#00c853"/>} color="#00c853" />
+                                    <StatCard title={activeTab === 'season' ? 'أفضل لاعب في الموسم (الكرة الذهبية)' : 'أفضل لاعب(MVP)'} name={awards?.bestPlayer?.name || '--'} value={awards?.bestPlayer?.score || '0'} subText="نقطة" icon={<FaStar size={isMobile ? 20 : 25} color="#2979ff"/>} color="#2979ff" />
                                 </div>
                                 <DreamTeamPitch players={awards?.dreamTeam} />
                             </div>
                         </>
                     )}
 
-                    {/* ✅ تبويب الإحصائيات الموسعة */}
                     {activeTab === 'stats' && statsData && (
-                        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-                                <StatCard title="الأعلى جمعاً للنقاط (أفضل هجوم)" name={statsData.bestAttack?.name} value={statsData.bestAttack?.stats?.totalFplPoints} subText="نقطة FPL" icon={<FaTshirt color="#38003c" size={25}/>} />
-                                <StatCard title="أعلى نقاط في جولة واحدة" name={statsData.highestGwRecord?.teamName} value={statsData.highestGwRecord?.points} subText={`جولة ${statsData.highestGwRecord?.gw}`} icon={<FaStar color="#ffd700" size={25}/>} color="#ffd700" />
-                                <StatCard title="أطول سلسلة دون هزيمة" name={statsData.longestUnbeaten?.teamName} value={statsData.longestUnbeaten?.maxUnbeaten} subText="مباريات" icon={<FaMedal color="#00c853" size={25}/>} color="#00c853" />
-                                <StatCard title="أطول سلسلة انتصارات" name={statsData.longestWinStreak?.teamName} value={statsData.longestWinStreak?.maxWinStreak} subText="فوز متتالي" icon={<FaTrophy color="#ff9800" size={25}/>} color="#ff9800" />
-                                <StatCard title="أطول سلسلة هزائم" name={statsData.longestLosing?.teamName} value={statsData.longestLosing?.maxLosing} subText="خسارة متتالية" icon={<FaHistory color="#d32f2f" size={25}/>} color="#d32f2f" />
+                        <div style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))', gap: isMobile ? '12px' : '20px', marginBottom: isMobile ? '20px' : '30px' }}>
+                                <StatCard title="الأعلى جمعاً للنقاط (أفضل هجوم)" name={statsData.bestAttack?.name} value={statsData.bestAttack?.stats?.totalFplPoints} subText="نقطة FPL" icon={<FaTshirt color="#38003c" size={isMobile ? 20 : 25}/>} />
+                                <StatCard title="أعلى نقاط في جولة واحدة" name={statsData.highestGwRecord?.teamName} value={statsData.highestGwRecord?.points} subText={`جولة ${statsData.highestGwRecord?.gw}`} icon={<FaStar color="#ffd700" size={isMobile ? 20 : 25}/>} color="#ffd700" />
+                                <StatCard title="أطول سلسلة دون هزيمة" name={statsData.longestUnbeaten?.teamName} value={statsData.longestUnbeaten?.maxUnbeaten} subText="مباريات" icon={<FaMedal color="#00c853" size={isMobile ? 20 : 25}/>} color="#00c853" />
+                                <StatCard title="أطول سلسلة انتصارات" name={statsData.longestWinStreak?.teamName} value={statsData.longestWinStreak?.maxWinStreak} subText="فوز متتالي" icon={<FaTrophy color="#ff9800" size={isMobile ? 20 : 25}/>} color="#ff9800" />
+                                <StatCard title="أطول سلسلة هزائم" name={statsData.longestLosing?.teamName} value={statsData.longestLosing?.maxLosing} subText="خسارة متتالية" icon={<FaHistory color="#d32f2f" size={isMobile ? 20 : 25}/>} color="#d32f2f" />
                             </div>
 
-                            {/* قاعة المشاهير */}
-                            <div style={{ background: '#fff', padding: '25px', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', border: '1px solid #eee' }}>
-                                <h3 style={{ margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '10px', color: '#38003c', fontWeight: '900' }}>
+                            <div style={{ background: '#fff', padding: isMobile ? '15px' : '25px', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', border: '1px solid #eee' }}>
+                                <h3 style={{ margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#38003c', fontWeight: '900', fontSize: isMobile ? '14px' : '18px' }}>
                                     ⭐ قاعة المشاهير (الأكثر ظهوراً في تشكيلة الأسبوع)
                                 </h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(auto-fill, minmax(140px, 1fr))' : 'repeat(auto-fill, minmax(200px, 1fr))', gap: isMobile ? '10px' : '15px' }}>
                                     {statsData.hallOfFame.map((player, idx) => (
-                                        <div key={idx} style={{ background: '#f8f9fb', padding: '15px', borderRadius: '12px', textAlign: 'center', borderBottom: '4px solid #ffd700', transition: '0.3s' }}>
-                                            <div style={{ fontWeight: '900', color: '#333' }}>{player.name}</div>
-                                            <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>{player.teamName}</div>
-                                            <div style={{ background: '#38003c', color: '#00ff87', display: 'inline-block', padding: '2px 10px', borderRadius: '10px', fontSize: '11px', marginTop: '10px', fontWeight: 'bold' }}>
+                                        <div key={idx} style={{ background: '#f8f9fb', padding: '12px', borderRadius: '12px', textAlign: 'center', borderBottom: '4px solid #ffd700', transition: '0.3s' }}>
+                                            <div style={{ fontWeight: '900', color: '#333', fontSize: isMobile ? '13px' : '15px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.name}</div>
+                                            <div style={{ fontSize: isMobile ? '10px' : '12px', color: '#666', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.teamName}</div>
+                                            <div style={{ background: '#38003c', color: '#00ff87', display: 'inline-block', padding: '3px 10px', borderRadius: '10px', fontSize: isMobile ? '9px' : '11px', marginTop: '8px', fontWeight: 'bold' }}>
                                                 {player.count} مرات ظهور
                                             </div>
                                         </div>
@@ -397,34 +389,118 @@ const AwardsCenter = () => {
                         </div>
                     )}
 
-                    {/* تبويب الفورمة */}
+                    {/* تبويب الفورمة المعدل */}
                     {activeTab === 'form' && (
-                        <div style={{ background: 'white', borderRadius: '24px', padding: isMobile ? '15px' : '30px', boxShadow: '0 10px 40px rgba(0,0,0,0.05)', maxWidth: '900px', margin: '0 auto' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '25px', borderBottom: '3px solid #38003c', paddingBottom: '15px' }}>
-                                <FaChartLine color="#38003c" size={24} />
-                                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '900' }}>سجل فورمة الفرق (آخر 5 مواجهات)</h3>
+                        <div style={{ 
+                            background: 'white', 
+                            borderRadius: '16px', 
+                            padding: isMobile ? '12px' : '25px', 
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.05)', 
+                            width: '100%', 
+                            maxWidth: '100%',
+                            margin: '0 auto',
+                            overflow: 'hidden'
+                        }}>
+                            <div style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: isMobile ? '8px' : '15px', 
+                                marginBottom: isMobile ? '15px' : '25px', 
+                                borderBottom: '3px solid #38003c', 
+                                paddingBottom: isMobile ? '10px' : '15px' 
+                            }}>
+                                <FaChartLine color="#38003c" size={isMobile ? 18 : 24} />
+                                <h3 style={{ 
+                                    margin: 0, 
+                                    fontSize: isMobile ? '14px' : '20px', 
+                                    fontWeight: '900',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                }}>
+                                    سجل فورمة الفرق (آخر 5 مواجهات)
+                                </h3>
                             </div>
-                            <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
-                                    <tbody>
-                                        {formGuide.map((team, idx) => (
-                                            <tr key={team.teamId} style={{ background: '#fcfcfe' }}>
-                                                <td style={{ padding: '15px', fontWeight: '900', color: '#38003c', fontSize: '18px', width: '50px' }}>{idx + 1}</td>
-                                                <td style={{ padding: '15px' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                        <img src={getLogoUrl(team.logoUrl)} style={{ width: '35px', height: '35px', objectFit: 'contain' }} alt="logo" />
-                                                        <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{team.teamName}</span>
-                                                    </div>
-                                                </td>
-                                                <td style={{ padding: '15px', textAlign: 'center' }}>
-                                                    <div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'row-reverse', gap: '5px' }}>
-                                                        {team.form.map((res, i) => <FormBadge key={i} result={res} />)}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            
+                            <div style={{ 
+                                width: '100%',
+                                overflowX: 'hidden'
+                            }}>
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: isMobile ? '1fr' : '1fr',
+                                    gap: isMobile ? '6px' : '10px',
+                                    width: '100%'
+                                }}>
+                                    {formGuide.map((team, idx) => (
+                                        <div 
+                                            key={team.teamId} 
+                                            style={{ 
+                                                background: '#fcfcfe', 
+                                                borderRadius: '12px',
+                                                padding: isMobile ? '10px' : '15px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                flexWrap: 'wrap',
+                                                borderBottom: '1px solid #eee'
+                                            }}
+                                        >
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                gap: isMobile ? '8px' : '12px',
+                                                flex: 1,
+                                                minWidth: isMobile ? '120px' : 'auto'
+                                            }}>
+                                                <div style={{
+                                                    fontWeight: '900', 
+                                                    color: '#38003c', 
+                                                    fontSize: isMobile ? '14px' : '16px',
+                                                    minWidth: isMobile ? '24px' : '30px',
+                                                    textAlign: 'center'
+                                                }}>
+                                                    {idx + 1}
+                                                </div>
+                                                <img 
+                                                    src={getLogoUrl(team.logoUrl)} 
+                                                    style={{ 
+                                                        width: isMobile ? '28px' : '35px', 
+                                                        height: isMobile ? '28px' : '35px', 
+                                                        objectFit: 'contain',
+                                                        flexShrink: 0
+                                                    }} 
+                                                    alt="logo" 
+                                                />
+                                                <div style={{ 
+                                                    fontWeight: 'bold', 
+                                                    fontSize: isMobile ? '12px' : '16px',
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    flex: 1
+                                                }}>
+                                                    {team.teamName}
+                                                </div>
+                                            </div>
+                                            
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                justifyContent: 'flex-end',
+                                                alignItems: 'center',
+                                                gap: isMobile ? '3px' : '5px',
+                                                flexShrink: 0,
+                                                marginTop: isMobile ? '8px' : '0',
+                                                width: isMobile ? '100%' : 'auto',
+                                                justifyContent: isMobile ? 'center' : 'flex-end'
+                                            }}>
+                                                {team.form?.map((res, i) => (
+                                                    <FormBadge key={i} result={res} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -444,12 +520,13 @@ const AwardsCenter = () => {
 };
 
 const getTabIcon = (tab) => {
+    const size = 14;
     switch(tab) {
-        case 'gameweek': return <TbSoccerField style={{ marginLeft: '8px' }} />;
-        case 'month': return <FaCalendarAlt style={{ marginLeft: '8px' }} />;
-        case 'season': return <FaTrophy style={{ marginLeft: '8px' }} />;
-        case 'stats': return <FaChartLine style={{ marginLeft: '8px' }} />;
-        case 'form': return <FaChartLine style={{ marginLeft: '8px' }} />;
+        case 'gameweek': return <TbSoccerField size={size} style={{ marginLeft: '6px' }} />;
+        case 'month': return <FaCalendarAlt size={size} style={{ marginLeft: '6px' }} />;
+        case 'season': return <FaTrophy size={size} style={{ marginLeft: '6px' }} />;
+        case 'stats': return <FaChartLine size={size} style={{ marginLeft: '6px' }} />;
+        case 'form': return <FaChartLine size={size} style={{ marginLeft: '6px' }} />;
         default: return null;
     }
 };
