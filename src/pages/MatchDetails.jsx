@@ -76,7 +76,26 @@ const MatchDetails = () => {
     if (loading || !data) return <div style={{display:'flex', height:'100vh', justifyContent:'center', alignItems:'center'}}><FaSpinner className="fa-spin" size={40} color="#37003c" /></div>;
 
     const { fixture, homeLineup, awayLineup } = data;
-    const maxRows = Math.max(homeLineup?.lineup?.length || 0, awayLineup?.lineup?.length || 0);
+	const sortPlayers = (lineupArray) => {
+    if (!lineupArray) return [];
+    return [...lineupArray].sort((a, b) => {
+        // 1. الكابتن أولاً
+        if (a.isCaptain) return -1;
+        if (b.isCaptain) return 1;
+        
+        // 2. الأساسي قبل الاحتياطي
+        if (a.isStarter && !b.isStarter) return -1;
+        if (!a.isStarter && b.isStarter) return 1;
+        
+        return 0; // الحفاظ على الترتيب الأصلي للبقية
+    });
+};
+
+// تطبيق الترتيب على الفريقين
+const sortedHomePlayers = sortPlayers(homeLineup?.lineup);
+const sortedAwayPlayers = sortPlayers(awayLineup?.lineup);
+const maxRows = Math.max(sortedHomePlayers.length, sortedAwayPlayers.length);
+    //const maxRows = Math.max(homeLineup?.lineup?.length || 0, awayLineup?.lineup?.length || 0);
 
     const PlayerBox = ({ player, isHome, activeChip }) => {
         if (!player) return <div style={{ flex: 1 }}></div>;
@@ -185,30 +204,32 @@ const MatchDetails = () => {
                 </div>
 
                 {/* Player List */}
-                <div style={{ padding: '10px' }}>
-                    {Array.from({ length: maxRows }).map((_, i) => {
-                        const hPlayer = homeLineup?.lineup?.[i];
-                        const aPlayer = awayLineup?.lineup?.[i];
-                        const showBenchHeader = (hPlayer && !hPlayer.isStarter && (i === 0 || homeLineup.lineup[i-1].isStarter)) || 
-                                              (aPlayer && !aPlayer.isStarter && (i === 0 || awayLineup.lineup[i-1].isStarter));
+<div style={{ padding: '10px' }}>
+    {Array.from({ length: maxRows }).map((_, i) => {
+        const hPlayer = sortedHomePlayers[i]; // استخدام المصفوفة المرتبة
+        const aPlayer = sortedAwayPlayers[i]; // استخدام المصفوفة المرتبة
+        
+        // منطق عرض فاصل الاحتياط (BENCH)
+        const showBenchHeader = (hPlayer && !hPlayer.isStarter && (i === 0 || sortedHomePlayers[i-1].isStarter)) || 
+                              (aPlayer && !aPlayer.isStarter && (i === 0 || sortedAwayPlayers[i-1].isStarter));
 
-                        return (
-                            <div key={i}>
-                                {showBenchHeader && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '20px 0 10px' }}>
-                                        <div style={{ height: '2px', flex: 1, background: '#f0f0f0' }}></div>
-                                        <div style={{ fontWeight: '1000', fontSize: '12px', color: '#bbb', letterSpacing: '1px' }}>BENCH</div>
-                                        <div style={{ height: '2px', flex: 1, background: '#f0f0f0' }}></div>
-                                    </div>
-                                )}
-                                <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                                    <PlayerBox player={hPlayer} isHome={true} activeChip={homeLineup?.activeChip} />
-                                    <PlayerBox player={aPlayer} isHome={false} activeChip={awayLineup?.activeChip} />
-                                </div>
-                            </div>
-                        );
-                    })}
+        return (
+            <div key={i}>
+                {showBenchHeader && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '20px 0 10px' }}>
+                        <div style={{ height: '2px', flex: 1, background: '#f0f0f0' }}></div>
+                        <div style={{ fontWeight: '1000', fontSize: '12px', color: '#bbb', letterSpacing: '1px' }}>BENCH</div>
+                        <div style={{ height: '2px', flex: 1, background: '#f0f0f0' }}></div>
+                    </div>
+                )}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                    <PlayerBox player={hPlayer} isHome={true} activeChip={homeLineup?.activeChip} />
+                    <PlayerBox player={aPlayer} isHome={false} activeChip={awayLineup?.activeChip} />
                 </div>
+            </div>
+        );
+    })}
+</div>
 
                 {/* Footer */}
                 <div style={{ padding: '25px', textAlign: 'center', background: '#f9f9f9', borderTop: '1px solid #eee' }}>

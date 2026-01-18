@@ -292,7 +292,7 @@ const checkIfLineupNeeded = async () => {
     );
   };
 
-  const renderPenaltyNotice = () => {
+  /*const renderPenaltyNotice = () => {
     if (!myTeamData || !myTeamData.missedDeadlines || myTeamData.missedDeadlines === 0) return null;
 
     const penaltyConfigs = {
@@ -329,7 +329,60 @@ const checkIfLineupNeeded = async () => {
             </div>
         </div>
     );
-  };
+  };*/
+  
+  const renderPenaltyNotice = () => {
+  // نتحقق من وجود عداد النسيان أو وجود نقاط خصم مسجلة
+  if (!myTeamData || (!myTeamData.missedDeadlines && !myTeamData.penaltyPoints)) return null;
+
+  const penaltyPoints = myTeamData.penaltyPoints || 0;
+  const missedCount = myTeamData.missedDeadlines || 0;
+
+  // إذا كان هناك نسيان ولكن لم يصل لمرحلة الخصم بعد (المرة الأولى)
+  if (missedCount === 1 && penaltyPoints === 0) {
+    return (
+      <div className="penalty-res-box" style={{ backgroundColor: "#fff3e0", color: "#e65100", padding: '20px', borderRadius: '12px', marginBottom: '25px', border: "2px solid #e65100", display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div style={{ fontSize: '35px' }}><FaInfoCircle /></div>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ margin: '0 0 5px 0', fontSize: '18px' }}>⚠️ تنبيه المخالفة الأولى</h3>
+          <p style={{ margin: 0, fontWeight: 'bold' }}>لقد نسيت ضبط التشكيلة! هذه المرة "سماح" بدون خصم، ولكن تكرارها سيؤدي لخصم نقاط من ترتيبكم العام.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // إذا وجد خصم نقاط (penaltyPoints > 0)
+  if (penaltyPoints > 0) {
+    const isDisqualified = missedCount >= 4;
+    return (
+      <div className="penalty-res-box" style={{
+        backgroundColor: isDisqualified ? "#212121" : "#ffebee",
+        color: isDisqualified ? "#ffffff" : "#c62828",
+        padding: '20px', borderRadius: '12px', marginBottom: '25px',
+        border: `2px solid ${isDisqualified ? "#ffffff" : "#c62828"}`,
+        display: 'flex', alignItems: 'center', gap: '20px',
+        animation: isDisqualified ? 'none' : 'pulse 2s infinite'
+      }}>
+        <div style={{ fontSize: '35px' }}>{isDisqualified ? <FaSkullCrossbones /> : <FaExclamationTriangle />}</div>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ margin: '0 0 5px 0', fontSize: '18px' }}>
+            {isDisqualified ? "🚫 قرار إقصاء الفريق" : `🚨 تم خصم (${penaltyPoints}) نقاط من رصيدكم`}
+          </h3>
+          <p style={{ margin: 0, fontWeight: 'bold' }}>
+            {isDisqualified 
+              ? "تم استبعاد الفريق نهائياً من المنافسة بسبب تكرار الغياب عن وضع التشكيلة (4 مرات)." 
+              : `بسبب تكرار نسيان التشكيلة (${missedCount} مرات)، تم تطبيق خصم إداري تراكمي يؤثر على ترتيبكم في الجدول.`}
+          </p>
+        </div>
+        <div style={{ background: isDisqualified ? "#f44336" : "#c62828", color: "white", padding: '5px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold' }}>
+           إجمالي الخصم: -{penaltyPoints}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
 
   const handleSyncGameweeks = async () => {
     if (!league) return;
