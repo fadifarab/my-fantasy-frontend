@@ -166,65 +166,69 @@ const TeamHistory = () => {
             </div>
 
             {/* Pitch */}
-            {loading ? <div style={{textAlign:'center'}}><FaSpinner className="spin" /></div> : 
-             restricted ? (
-                <div style={{ textAlign: 'center', padding: '50px 20px', background: '#fff', borderRadius: '25px', margin: '0 auto' }}>
-                    <FaShieldAlt size={60} color="#d32f2f" />
-                    <h3 style={{ color: '#d32f2f' }}>التشكيلة مخفية 🔒</h3>
-                </div>
-            ) : gwData && !gwData.noData ? (
-                <div style={{ maxWidth: '850px', margin: '0 auto' }}>
-                    
-                    {/* ✅ بطاقة الخاصية (إظهار الخاصية فوق الملعب للجميع) */}
-                    {gwData.activeChip && gwData.activeChip !== 'none' && (
-                        <div style={{
-                            backgroundColor: '#38003c',
-                            color: '#00ff87',
-                            padding: '10px',
-                            borderRadius: '12px 12px 0 0',
-                            textAlign: 'center',
-                            fontWeight: 'bold',
-                            border: '2px solid #00ff87',
-                            borderBottom: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '10px'
-                        }}>
-                            {CHIPS[gwData.activeChip]?.icon}
-                            <span>الخاصية المستخدمة: {CHIPS[gwData.activeChip]?.label}</span>
-                        </div>
-                    )}
+            {/* Pitch */}
+{loading ? <div style={{textAlign:'center'}}><FaSpinner className="spin" /></div> : 
+   restricted ? (
+    <div style={{ textAlign: 'center', padding: '50px 20px', background: '#fff', borderRadius: '25px', margin: '0 auto' }}>
+        <FaShieldAlt size={60} color="#d32f2f" />
+        <h3 style={{ color: '#d32f2f' }}>التشكيلة مخفية 🔒</h3>
+    </div>
+) : gwData && !gwData.noData ? (
+    <div style={{ maxWidth: '850px', margin: '0 auto' }}>
+        
+        {/* بطاقة الخاصية */}
+        {gwData.activeChip && gwData.activeChip !== 'none' && (
+            <div style={{
+                backgroundColor: '#38003c', color: '#00ff87', padding: '10px',
+                borderRadius: '12px 12px 0 0', textAlign: 'center', fontWeight: 'bold',
+                border: '2px solid #00ff87', borderBottom: 'none', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', gap: '10px'
+            }}>
+                {CHIPS[gwData.activeChip]?.icon}
+                <span>الخاصية المستخدمة: {CHIPS[gwData.activeChip]?.label}</span>
+            </div>
+        )}
 
-                    <div style={{ 
-                        background: `repeating-linear-gradient(0deg, #2e7d32, #2e7d32 45px, #388e3c 45px, #388e3c 90px)`,
-                        borderRadius: gwData.activeChip && gwData.activeChip !== 'none' ? '0 0 20px 20px' : '20px', 
-                        padding: isMobile ? '30px 5px' : '60px 20px', minHeight: isMobile ? '450px' : '650px', 
-                        display:'flex', flexDirection:'column', justifyContent: 'center', border:'6px solid #fff', position:'relative', overflow:'hidden'
-                    }}>
-                        {/* خطوط الملعب */}
-                        <div style={{ position: 'absolute', top: '15px', left: '15px', right: '15px', bottom: '15px', border: '1px solid rgba(255,255,255,0.3)' }}></div>
-                        <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '1px', background: 'rgba(255,255,255,0.3)' }}></div>
-                        
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '30px' : '60px', alignItems: 'center', zIndex: 10 }}>
-                            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                                {gwData.lineup.filter(p => p.isStarter && p.isCaptain).map(p => <PlayerCard key={p._id} player={p} />)}
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '5px' : '20px', width: '100%', flexWrap: 'wrap' }}>
-                                {gwData.lineup.filter(p => p.isStarter && !p.isCaptain).map(p => <PlayerCard key={p._id} player={p} />)}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* دكة الاحتياط */}
-                    <div style={{ marginTop: '15px', background: '#fff', padding: '15px', borderRadius: '20px', boxShadow: '0 5px 15px rgba(0,0,0,0.05)' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#38003c', borderBottom: '1px solid #eee' }}>🛋 الاحتياط</div>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '5px' : '25px', flexWrap: 'wrap' }}>
-                            {gwData.lineup.filter(p => !p.isStarter).map(p => <PlayerCard key={p._id} player={p} isSub={true} />)}
-                        </div>
-                    </div>
+        <div style={{ 
+            background: `repeating-linear-gradient(0deg, #2e7d32, #2e7d32 45px, #388e3c 45px, #388e3c 90px)`,
+            borderRadius: gwData.activeChip && gwData.activeChip !== 'none' ? '0 0 20px 20px' : '20px', 
+            padding: isMobile ? '30px 5px' : '60px 20px', minHeight: isMobile ? '450px' : '650px', 
+            display:'flex', flexDirection:'column', justifyContent: 'center', border:'6px solid #fff', position:'relative', overflow:'hidden'
+        }}>
+            {/* خطوط الملعب */}
+            <div style={{ position: 'absolute', top: '15px', left: '15px', right: '15px', bottom: '15px', border: '1px solid rgba(255,255,255,0.3)' }}></div>
+            <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '1px', background: 'rgba(255,255,255,0.3)' }}></div>
+            
+            {/* 🛡️ الحاوية الجديدة لتشكيل المثلث */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '20px' : '40px', alignItems: 'center', zIndex: 10 }}>
+                
+                {/* 1. صف الكابتن (رأس المثلث) */}
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    {gwData.lineup.filter(p => p.isStarter && p.isCaptain).map(p => <PlayerCard key={p._id} player={p} />)}
                 </div>
-            ) : <div style={{textAlign: 'center', padding: '40px'}}>لا توجد بيانات</div>}
+
+                {/* 2. صف اللاعبين الأساسيين (قاعدة المثلث) - هنا تم زيادة المسافة */}
+                <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    gap: isMobile ? '40px' : '80px', // 👈 زيادة المسافة الأفقية هنا
+                    width: '100%' 
+                }}>
+                    {gwData.lineup.filter(p => p.isStarter && !p.isCaptain).map(p => <PlayerCard key={p._id} player={p} />)}
+                </div>
+
+            </div>
+        </div>
+
+        {/* دكة الاحتياط */}
+        <div style={{ marginTop: '15px', background: '#fff', padding: '15px', borderRadius: '20px', boxShadow: '0 5px 15px rgba(0,0,0,0.05)' }}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#38003c', borderBottom: '1px solid #eee' }}>🛋 الاحتياط</div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '5px' : '25px', flexWrap: 'wrap' }}>
+                {gwData.lineup.filter(p => !p.isStarter).map(p => <PlayerCard key={p._id} player={p} isSub={true} />)}
+            </div>
+        </div>
+    </div>
+) : <div style={{textAlign: 'center', padding: '40px'}}>لا توجد بيانات</div>}
 
             <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
         </div>
