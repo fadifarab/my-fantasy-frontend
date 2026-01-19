@@ -8,7 +8,6 @@ import {
     FaUserFriends, FaTimes, FaTrophy, FaRobot, FaSpinner,
     FaShieldAlt, FaBolt, FaStar, FaMagic, FaArrowRight, FaArrowLeft
 } from "react-icons/fa"; 
-import { TbSoccerField, TbReplace } from "react-icons/tb";
 
 const MyTeam = () => {
     const { user } = useContext(AuthContext);
@@ -150,6 +149,13 @@ const MyTeam = () => {
             
             setIsDeadlinePassed(deadlinePassed);
             setIsEditable(selectedGW === currentGW + 1 && !deadlinePassed);
+            
+            // الحفاظ على منطق الكود الأصلي: فقط المناجير يمكنه التعديل
+            if (!team || !team.managerId) return;
+            const isManager = team.managerId && user._id === (team.managerId._id || team.managerId);
+            if (!isManager) {
+                setIsEditable(false);
+            }
 
             if (deadlinePassed) {
                 setTimeLeft(selectedGW <= currentGW ? 'انتهى الوقت! ⛔' : 'انتهى الديدلاين');
@@ -162,7 +168,7 @@ const MyTeam = () => {
             }
         }, 1000);
         return () => clearInterval(timer);
-    }, [deadline, selectedGW, currentGW]);
+    }, [deadline, selectedGW, currentGW, team, user]);
 
     const toggleStarter = (id) => {
         if (!isEditable) return;
@@ -305,6 +311,9 @@ const MyTeam = () => {
         const name = player.username || 'Unknown';
         const kitSize = isMobile ? (isSub ? 55 : 75) : (isSub ? 80 : 115);
         const cardWidth = isMobile ? (isSub ? '75px' : '85px') : '140px';
+        
+        // الحفاظ على منطق المناجير فقط
+        const isManager = team && team.managerId && user._id === (team.managerId._id || team.managerId);
 
         return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: cardWidth, margin: '2px 0', zIndex: 10 }}>
@@ -333,7 +342,7 @@ const MyTeam = () => {
                 }}>
                     {name}
                 </div>
-                {isEditable && !isSub && (
+                {isManager && isEditable && !isSub && (
                     <div style={{ marginTop: '8px', display: 'flex', gap: '5px', justifyContent: 'center' }}>
                         <button onClick={() => toggleStarter(player.userId)} style={{ backgroundColor: '#ff1744', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FaArrowDown size={12} /></button>
                         <button 
@@ -347,7 +356,7 @@ const MyTeam = () => {
                         </button>
                     </div>
                 )}
-                {isEditable && isSub && (
+                {isManager && isEditable && isSub && (
                     <button onClick={() => toggleStarter(player.userId)} style={{ 
                         backgroundColor: '#37003c', color: '#00ff87', border: 'none', padding: '4px 8px', borderRadius: '6px', 
                         marginTop: '5px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px'
@@ -369,7 +378,7 @@ const MyTeam = () => {
         <div style={{ padding: isMobile ? '10px' : '20px', background: '#f4f6f9', minHeight: '100vh', direction: 'rtl' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <button onClick={() => navigate(-1)} style={{ background: '#fff', border: 'none', padding: '8px 15px', borderRadius: '10px', fontWeight: 'bold', cursor:'pointer' }}>⬅</button>
+                <button onClick={() => navigate('/dashboard')} style={{ background: '#fff', border: 'none', padding: '8px 15px', borderRadius: '10px', fontWeight: 'bold', cursor:'pointer' }}>⬅</button>
                 <h3 style={{ color: '#38003c', margin: 0, fontSize: isMobile ? '18px' : '24px' }}>{team.name}</h3>
                 <div style={{width:'40px'}}></div>
             </div>

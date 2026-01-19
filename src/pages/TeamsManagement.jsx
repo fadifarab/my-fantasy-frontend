@@ -4,13 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { 
     FaShieldAlt, FaTrash, FaUserTie, FaUsers, 
-    FaCrown, FaStar, FaIdBadge, FaHistory 
+    FaCrown, FaStar, FaIdBadge, FaHistory,
+    FaCheckCircle, FaClock, FaExclamationCircle
 } from "react-icons/fa";
 
 const TeamsManagement = () => {
     const { user } = useContext(AuthContext);
     const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentLeagueGw, setCurrentLeagueGw] = useState(null);
     const navigate = useNavigate();
     const [message, setMessage] = useState('');
 
@@ -21,8 +23,16 @@ const TeamsManagement = () => {
     const fetchTeams = async () => {
         try {
             setLoading(true);
-            // جلب البيانات من المسار الإداري الجديد (أعضاء + نقاط + FPL ID)
+            // 1. جلب الجولة الحالية للدوري أولاً لمعرفة الجولة المستهدفة
+            const { data: status } = await API.get('/gameweek/status');
+            const targetGw = status.nextGwId || (status.id + 1);
+            setCurrentLeagueGw(targetGw);
+
+            // 2. جلب البيانات الإدارية
             const { data } = await API.get('/leagues/admin/all-teams'); 
+            
+            // 3. فحص حالة كل فريق للجولة القادمة (Compliance Check)
+            // ملاحظة: السيرفر يجب أن يعيد حقل isInherited لكل فريق في هذا المسار
             setTeams(data);
             setLoading(false);
         } catch (error) {
@@ -54,8 +64,13 @@ const TeamsManagement = () => {
                     <button onClick={() => navigate('/dashboard')} style={{ padding: '8px 15px', background: 'white', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>⬅</button>
                     <h1 style={{ margin: 0, color: '#38003c', fontSize: '24px' }}>🛡️ إدارة أندية الدوري</h1>
                 </div>
-                <div style={{ background: '#38003c', color: 'white', padding: '8px 15px', borderRadius: '10px', fontSize: '14px', fontWeight: 'bold' }}>
-                    إجمالي الأندية: {teams.length}
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <div style={{ background: '#00ff85', color: '#38003c', padding: '8px 15px', borderRadius: '10px', fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        الجولة المراقبة: {currentLeagueGw}
+                    </div>
+                    <div style={{ background: '#38003c', color: 'white', padding: '8px 15px', borderRadius: '10px', fontSize: '14px', fontWeight: 'bold' }}>
+                        إجمالي الأندية: {teams.length}
+                    </div>
                 </div>
             </div>
 
@@ -63,10 +78,23 @@ const TeamsManagement = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '25px' }}>
                 {teams.map(team => (
-                    <div key={team._id} style={{ background: 'white', borderRadius: '15px', padding: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', borderTop: '5px solid #38003c', display: 'flex', flexDirection: 'column' }}>
+                    <div key={team._id} style={{ background: 'white', borderRadius: '15px', padding: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', borderTop: `5px solid ${team.isReadyForNextGw ? '#00ff85' : '#38003c'}`, display: 'flex', flexDirection: 'column', position: 'relative' }}>
                         
+                        {/* مؤشر حالة التزام الفريق (GW +1) */}
+                        <div style={{ position: 'absolute', top: '15px', left: '15px' }}>
+                            {team.isReadyForNextGw ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#2e7d32', fontSize: '11px', fontWeight: 'bold', background: '#e8f5e9', padding: '4px 8px', borderRadius: '20px', border: '1px solid #c8e6c9' }}>
+                                    <FaCheckCircle className="blink-icon" /> تم الحفظ
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#666', fontSize: '11px', fontWeight: 'bold', background: '#f5f5f5', padding: '4px 8px', borderRadius: '20px', border: '1px solid #ddd' }}>
+                                    <FaClock /> موروثة
+                                </div>
+                            )}
+                        </div>
+
                         {/* معلومات النادي */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px', marginTop: '10px' }}>
                             <img src={team.logoUrl} style={{ width: '55px', height: '55px', objectFit: 'contain', background: '#f9f9f9', padding: '5px', borderRadius: '8px' }} onError={(e) => e.target.src = 'https://via.placeholder.com/55'} />
                             <div style={{ flex: 1 }}>
                                 <h3 style={{ margin: 0, color: '#333' }}>{team.name}</h3>
@@ -107,7 +135,7 @@ const TeamsManagement = () => {
                             </div>
                         </div>
 
-                        {/* التحكم الإداري: الربط بصفحة التشكيلات الملعوبة */}
+                        {/* التحكم الإداري */}
                         <div style={{ display: 'flex', gap: '10px', marginTop: 'auto' }}>
                             <button 
                                 onClick={() => navigate(`/team-history/${team._id}`)} 
@@ -132,6 +160,15 @@ const TeamsManagement = () => {
                     </div>
                 ))}
             </div>
+
+            <style>{`
+                .blink-icon {
+                    animation: blinker 2s linear infinite;
+                }
+                @keyframes blinker {
+                    50% { opacity: 0.3; }
+                }
+            `}</style>
         </div>
     );
 };
