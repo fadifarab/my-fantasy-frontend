@@ -74,7 +74,10 @@ const Dashboard = () => {
     // حتى لو لم يكن teamId موجوداً في الكاش المحلي (localStorage)
     if (user.leagueId) {
         fetchLeagueTeams();
-        fetchMyTeamDetails(); // هذه ستجلب الفريق سواء كنت مناجير أو لاعب
+        //fetchMyTeamDetails(); // هذه ستجلب الفريق سواء كنت مناجير أو لاعب
+		fetchMyTeamDetails().then(() => {
+            checkIfLineupNeeded(); 
+        });
     }
 
     if (user.teamId) {
@@ -114,7 +117,7 @@ const Dashboard = () => {
     }
 };*/
 
-const checkIfLineupNeeded = async () => {
+/*const checkIfLineupNeeded = async () => {
     try {
         // ✅ الحل الأقوى: نأخذ الـ teamId من بيانات الفريق المجلوبة من السيرفر
         // لأنها دائمًا محدثة، بينما user.teamId قد يكون قديمًا في الكاش
@@ -135,7 +138,55 @@ const checkIfLineupNeeded = async () => {
     } catch (err) {
         setNeedsLineupUpdate(true);
     }
+};*/
+
+const checkIfLineupNeeded = async () => {
+    try {
+        const currentTeamId = user?.teamId || myTeamData?._id;
+        if (!currentTeamId || ['created', 'joined'].includes(currentTeamId)) return;
+
+        // 1. جلب حالة الجولة لمعرفة الرقم القادم
+        const { data: status } = await API.get('/gameweek/status');
+        const nextGw = status.nextGwId;
+
+        // 2. جلب بيانات "فريقي" لهذه الجولة تحديداً
+        const { data: teamGwData } = await API.get(`/teams/me?gw=${nextGw}`);
+
+        // 🚨 المنطق: إذا عادت العلامة isInherited كـ true، فهذا يعني أن المناجير لم يؤكد التشكيلة
+        if (teamGwData.isInherited || !teamGwData.lineup || teamGwData.lineup.length === 0) {
+            setNeedsLineupUpdate(true);
+        } else {
+            setNeedsLineupUpdate(false);
+        }
+    } catch (err) {
+        console.error("فشل فحص التشكيلة:", err);
+        setNeedsLineupUpdate(false);
+    }
 };
+
+/*const checkIfLineupNeeded = async () => {
+    try {
+        const currentTeamId = user?.teamId || myTeamData?._id;
+        if (!currentTeamId || ['created', 'joined'].includes(currentTeamId)) return;
+
+        // 1. جلب الحالة الحقيقية من الديدلاين
+        const { data: status } = await API.get('/gameweek/status');
+        const nextGw = status.nextGwId;
+
+        // 2. جلب بيانات الفريق لهذه الجولة
+        const { data: teamGwData } = await API.get(`/teams/me?gw=${nextGw}`);
+
+        // 🚨 الإشعار يظهر إذا كانت التشكيلة موروثة (isInherited) 
+        // أو إذا لم يضغط المستخدم "حفظ" لهذه الجولة تحديداً
+        if (teamGwData.isInherited || teamGwData.noData) {
+            setNeedsLineupUpdate(true);
+        } else {
+            setNeedsLineupUpdate(false);
+        }
+    } catch (err) {
+        setNeedsLineupUpdate(false);
+    }
+};*/
 
   /*const checkIfLineupNeeded = async () => {
     try {
@@ -163,6 +214,7 @@ const checkIfLineupNeeded = async () => {
         if (diff <= 0) {
             setTimeLeft("انتهى وقت التعديل ⛔");
             clearInterval(timer);
+			fetchDeadlineStatus().then(() => checkIfLineupNeeded());
         } else {
             const d = Math.floor(diff / (1000 * 60 * 60 * 24));
             const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
