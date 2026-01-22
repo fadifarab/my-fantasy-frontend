@@ -9,6 +9,7 @@ import {
     FaLock, FaTimes, FaCheck, FaCrown, FaExclamationTriangle, FaSkullCrossbones, FaInfoCircle, FaFileExcel, FaClock,
     FaShieldAlt 
 } from "react-icons/fa";
+import { FaFacebook } from "react-icons/fa"; // تأكد من وجود هذا المستورد
 
 const Dashboard = () => {
   const { user, logout, updateUser } = useContext(AuthContext);
@@ -643,14 +644,16 @@ const checkIfLineupNeeded = async () => {
         <div>
             <div className="header-info-flex" style={{display:'flex', alignItems:'center', gap:'15px'}}>
                 {league?.logoUrl && (
-                    <div style={{ minWidth: '60px', width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #38003c', background: '#fff' }}>
-                        <img 
-                            src={`${SERVER_URL}${league.logoUrl}`} 
-                            alt="League Logo" 
-                            style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-                        />
-                    </div>
-                )}
+    <div style={{ minWidth: '60px', width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #38003c', background: '#fff' }}>
+        <img 
+            // 🛠 التعديل الذكي هنا لضمان عمل رابط PostImages أو الرابط المحلي
+            src={league.logoUrl.startsWith('http') ? league.logoUrl : `${SERVER_URL}${league.logoUrl}`} 
+            alt="League Logo" 
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+            onError={(e) => { e.target.src = 'https://cdn-icons-png.flaticon.com/512/861/861506.png'; }}
+        />
+    </div>
+)}
                 <div>
                     <h1 className="header-title" style={{ margin: 0 }}>لوحة التحكم 📱</h1>
                     <div className="header-sub-flex" style={{display:'flex', alignItems:'center', gap:'10px'}}>
@@ -787,6 +790,32 @@ const checkIfLineupNeeded = async () => {
                   <button onClick={handleCalculateScores} disabled={!league} style={{ padding: '10px', width: '100%', backgroundColor: '#2196f3', color: 'white', border: 'none', fontWeight: 'bold', borderRadius:'8px', cursor: league ? 'pointer' : 'not-allowed' }}>🔄 1. حساب النقاط والمكافآت</button>
                   <button onClick={handleUpdateTable} disabled={!league} style={{ padding: '10px', width: '100%', backgroundColor: '#673ab7', color: 'white', border: 'none', fontWeight: 'bold', borderRadius:'8px', cursor: league ? 'pointer' : 'not-allowed' }}>📊 2. تحديث جدول الترتيب</button>
                   <button onClick={handleSyncPlayers} disabled={!league} style={{ padding: '10px', width: '100%', backgroundColor: '#ff9800', color: 'white', border: 'none', fontWeight: 'bold', borderRadius:'8px', cursor: league ? 'pointer' : 'not-allowed' }}><FaSync /> 3. مزامنة الهدافين</button>
+				  <div style={{ marginBottom: '20px' }}>
+             <button 
+                onClick={() => navigate('/media-center')}
+                style={{
+                    width: '100%', 
+                    padding: '15px', 
+                    background: 'linear-gradient(135deg, #1877F2 0%, #0a58ca 100%)',
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '12px', 
+                    fontWeight: 'bold',
+                    fontSize: '16px',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '10px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 15px rgba(24, 119, 242, 0.3)',
+                    transition: '0.3s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+                <FaFacebook size={22} /> 📢 المركز الإعلامي للنشر (Facebook)
+            </button>
+          </div>
 
                   <div style={{ borderTop: '1px solid #eee', paddingTop: '10px', marginTop: '5px' }}>
                         <div className="input-row-res" style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>

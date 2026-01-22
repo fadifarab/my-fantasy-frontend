@@ -7,6 +7,7 @@ import {
     FaCalendarAlt, FaChevronRight, FaChevronLeft, FaChartLine, FaSpinner, FaCog, FaHistory
 } from "react-icons/fa";
 import { TbSoccerField } from "react-icons/tb";
+import TournamentHeader from '../utils/TournamentHeader'; // الإضافة 1
 
 const AwardsCenter = () => {
     const { user } = useContext(AuthContext);
@@ -244,6 +245,7 @@ const AwardsCenter = () => {
 
     return (
         <div style={{ padding: isMobile ? '10px' : '30px', background: '#f8f9fb', minHeight: '100vh', direction: 'rtl', overflowX: 'hidden' }}>
+            <TournamentHeader isMobile={isMobile} logoUrl={user?.leagueId?.logoUrl} /> {/* الإضافة 2 */}
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: isMobile ? '15px' : '25px', gap: isMobile ? '10px' : '15px' }}>
                 <button onClick={() => navigate('/dashboard')} style={{ background: '#fff', border: '1px solid #eee', width: isMobile ? '40px' : '45px', height: isMobile ? '40px' : '45px', borderRadius: '12px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color: '#38003c', flexShrink: 0 }}>
                     <FaArrowLeft size={isMobile ? 18 : 20} />
@@ -262,65 +264,17 @@ const AwardsCenter = () => {
                 borderRadius: '16px', 
                 boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
             }}>
-                <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    gap: isMobile ? '6px' : '8px',
-                    width: '100%'
-                }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '6px' : '8px', width: '100%' }}>
                     {['gameweek', 'month', 'season'].map((tab) => (
-                        <button 
-                            key={tab} 
-                            onClick={() => setActiveTab(tab)} 
-                            style={{ 
-                                flex: isMobile ? 1 : '0 0 auto', 
-                                padding: isMobile ? '10px 8px' : '12px 24px', 
-                                borderRadius: '12px', 
-                                border: 'none', 
-                                background: activeTab === tab ? '#38003c' : 'transparent', 
-                                color: activeTab === tab ? '#00ff87' : '#555', 
-                                fontSize: isMobile ? '12px' : '15px', 
-                                fontWeight: 'bold', 
-                                cursor: 'pointer', 
-                                whiteSpace: 'nowrap', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                minWidth: isMobile ? '0' : 'auto'
-                            }}
-                        >
+                        <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: isMobile ? 1 : '0 0 auto', padding: isMobile ? '10px 8px' : '12px 24px', borderRadius: '12px', border: 'none', background: activeTab === tab ? '#38003c' : 'transparent', color: activeTab === tab ? '#00ff87' : '#555', fontSize: isMobile ? '12px' : '15px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {getTabIcon(tab)} {tab === 'gameweek' ? 'جولة' : tab === 'month' ? 'شهر' : 'موسم'}
                         </button>
                     ))}
                 </div>
                 
-                <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    gap: isMobile ? '6px' : '8px',
-                    width: '100%'
-                }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '6px' : '8px', width: '100%' }}>
                     {['stats', 'form'].map((tab) => (
-                        <button 
-                            key={tab} 
-                            onClick={() => setActiveTab(tab)} 
-                            style={{ 
-                                flex: isMobile ? 1 : '0 0 auto', 
-                                padding: isMobile ? '10px 8px' : '12px 24px', 
-                                borderRadius: '12px', 
-                                border: 'none', 
-                                background: activeTab === tab ? '#38003c' : 'transparent', 
-                                color: activeTab === tab ? '#00ff87' : '#555', 
-                                fontSize: isMobile ? '12px' : '15px', 
-                                fontWeight: 'bold', 
-                                cursor: 'pointer', 
-                                whiteSpace: 'nowrap', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                minWidth: isMobile ? '0' : 'auto'
-                            }}
-                        >
+                        <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: isMobile ? 1 : '0 0 auto', padding: isMobile ? '10px 8px' : '12px 24px', borderRadius: '12px', border: 'none', background: activeTab === tab ? '#38003c' : 'transparent', color: activeTab === tab ? '#00ff87' : '#555', fontSize: isMobile ? '12px' : '15px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {getTabIcon(tab)} {tab === 'stats' ? 'إحصائيات' : 'فورمة'}
                         </button>
                     ))}
@@ -389,7 +343,6 @@ const AwardsCenter = () => {
                         </div>
                     )}
 
-                    {/* تبويب الفورمة المعدل */}
                     {activeTab === 'form' && (
                         <div style={{ 
                             background: 'white', 

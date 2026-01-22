@@ -7,7 +7,8 @@ import {
     FaTshirt, FaClock, FaExclamationTriangle, FaCalendarCheck, FaLock,
     FaUserFriends, FaTimes, FaTrophy, FaRobot, FaSpinner,
     FaShieldAlt, FaBolt, FaStar, FaMagic, FaArrowRight, FaArrowLeft
-} from "react-icons/fa"; 
+} from "react-icons/fa";
+import TournamentHeader from '../utils/TournamentHeader';
 
 const MyTeam = () => {
     const { user } = useContext(AuthContext);
@@ -18,6 +19,7 @@ const MyTeam = () => {
     const [lineup, setLineup] = useState({}); 
     const [activeChip, setActiveChip] = useState('none');
     const [message, setMessage] = useState('');
+    const [leagueLogo, setLeagueLogo] = useState('');
 
     const [deadline, setDeadline] = useState(null);
     const [currentGW, setCurrentGW] = useState(null); 
@@ -70,6 +72,15 @@ const MyTeam = () => {
             if (data) {
                 setTeam(data);
                 
+                if (data.leagueId && typeof data.leagueId === 'object' && data.leagueId.logoUrl) {
+                    setLeagueLogo(data.leagueId.logoUrl);
+                } else {
+                    try {
+                        const { data: lData } = await API.get('/leagues/me');
+                        if (lData.logoUrl) setLeagueLogo(lData.logoUrl);
+                    } catch (e) { console.log("Logo load fail"); }
+                }
+
                 const deadlineTime = data.deadline_time ? new Date(data.deadline_time) : null;
                 setDeadline(deadlineTime);
                 
@@ -150,7 +161,6 @@ const MyTeam = () => {
             setIsDeadlinePassed(deadlinePassed);
             setIsEditable(selectedGW === currentGW + 1 && !deadlinePassed);
             
-            // الحفاظ على منطق الكود الأصلي: فقط المناجير يمكنه التعديل
             if (!team || !team.managerId) return;
             const isManager = team.managerId && user._id === (team.managerId._id || team.managerId);
             if (!isManager) {
@@ -195,9 +205,7 @@ const MyTeam = () => {
                 'إذا قمت بتغيير الكابتن يدوياً، سيتم إلغاء تفعيل خاصية "The Best".\n' +
                 'هل تريد المتابعة؟'
             );
-            
             if (!confirmCancel) return;
-            
             setActiveChip('none');
             setMessage('⚠️ تم إلغاء تفعيل خاصية "The Best" بسبب اختيار كابتن يدوياً');
         }
@@ -306,13 +314,10 @@ const MyTeam = () => {
         }
     };
 
-    // ✅ مكون البطاقة بنفس تنسيق تاريخ الفريق
     const PlayerCard = ({ player, isSub = false }) => {
         const name = player.username || 'Unknown';
         const kitSize = isMobile ? (isSub ? 55 : 75) : (isSub ? 80 : 115);
         const cardWidth = isMobile ? (isSub ? '75px' : '85px') : '140px';
-        
-        // الحفاظ على منطق المناجير فقط
         const isManager = team && team.managerId && user._id === (team.managerId._id || team.managerId);
 
         return (
@@ -376,26 +381,29 @@ const MyTeam = () => {
 
     return (
         <div style={{ padding: isMobile ? '10px' : '20px', background: '#f4f6f9', minHeight: '100vh', direction: 'rtl' }}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <button onClick={() => navigate('/dashboard')} style={{ background: '#fff', border: 'none', padding: '8px 15px', borderRadius: '10px', fontWeight: 'bold', cursor:'pointer' }}>⬅</button>
-                <h3 style={{ color: '#38003c', margin: 0, fontSize: isMobile ? '18px' : '24px' }}>{team.name}</h3>
+            <TournamentHeader isMobile={isMobile} logoUrl={leagueLogo} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', backgroundColor: '#fff', padding: '10px 15px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                <button onClick={() => navigate('/dashboard')} style={{ background: '#f0f0f0', border: 'none', padding: '8px 12px', borderRadius: '10px', fontWeight: 'bold', cursor:'pointer' }}>⬅</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h3 style={{ color: '#38003c', margin: 0, fontSize: isMobile ? '18px' : '22px', fontWeight: '800' }}>{team.name}</h3>
+                    <div style={{ width: isMobile ? '35px' : '45px', height: isMobile ? '35px' : '45px' }}>
+                        <img 
+        // 👈 التعديل هنا: نستخدم logoUrl القادم من قاعدة البيانات
+        src={team.logoUrl || `/kits/${team.name}.png`} 
+        alt="شعار النادي"
+        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        onError={(e) => { e.target.src = '/kits/default.png'; }} 
+    />
+                    </div>
+                </div>
                 <div style={{width:'40px'}}></div>
             </div>
 
-            {/* Deadline Info */}
-            <div style={{ 
-                backgroundColor: !isEditable ? '#ffebee' : '#e3f2fd', 
-                color: !isEditable ? '#c62828' : '#0d47a1', 
-                padding: '10px', borderRadius: '12px', marginBottom: '15px', fontWeight: 'bold',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                border: `1px solid ${!isEditable ? '#ef9a9a' : '#90caf9'}`
-            }}>
+            <div style={{ backgroundColor: !isEditable ? '#ffebee' : '#e3f2fd', color: !isEditable ? '#c62828' : '#0d47a1', padding: '10px', borderRadius: '12px', marginBottom: '15px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', border: `1px solid ${!isEditable ? '#ef9a9a' : '#90caf9'}` }}>
                 {!isEditable ? <FaLock /> : <FaClock />}
                 <span>{timeLeft}</span>
             </div>
 
-            {/* سجل الخواص المستعملة */}
             <div style={{ background: '#fff', padding: '15px', borderRadius: '15px', marginBottom: '15px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                 <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#38003c', marginBottom: '10px', textAlign: 'center', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>📊 سجل الخواص المستعملة</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
@@ -416,99 +424,33 @@ const MyTeam = () => {
                 </div>
             </div>
 
-            {/* GW Selector */}
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
-                <button onClick={() => { 
-                    const prev = selectedGW - 1; 
-                    if (prev >= 1) { 
-                        setSelectedGW(prev); 
-                        fetchTeamForGW(prev); 
-                    }
-                }} disabled={selectedGW <= 1} style={{ border: 'none', background: '#fff', padding: '12px', borderRadius: '50%', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', cursor: 'pointer' }}><FaArrowRight /></button>
+                <button onClick={() => { const prev = selectedGW - 1; if (prev >= 1) { setSelectedGW(prev); fetchTeamForGW(prev); } }} disabled={selectedGW <= 1} style={{ border: 'none', background: '#fff', padding: '12px', borderRadius: '50%', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', cursor: 'pointer' }}><FaArrowRight /></button>
                 <div style={{ textAlign: 'center' }}>
                     <h2 style={{ margin: 0, fontSize: isMobile ? '24px' : '32px', color: '#38003c' }}>الجولة {selectedGW}</h2>
-                    <div style={{ 
-                        display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#38003c', 
-                        color: '#00ff85', padding: '5px 12px', borderRadius: '8px', border: '1px solid #00ff85',
-                        marginTop: '5px'
-                    }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: '#38003c', color: '#00ff85', padding: '5px 12px', borderRadius: '8px', border: '1px solid #00ff85', marginTop: '5px' }}>
                         <FaCalendarCheck />
-                        <select value={selectedGW} onChange={(e) => { 
-                            const v = parseInt(e.target.value); 
-                            setSelectedGW(v); 
-                            fetchTeamForGW(v); 
-                        }} style={{ 
-                            background: 'transparent', color: '#00ff85', border: 'none', 
-                            fontWeight: 'bold', cursor: 'pointer', outline: 'none', fontSize: '14px' 
-                        }}>
+                        <select value={selectedGW} onChange={(e) => { const v = parseInt(e.target.value); setSelectedGW(v); fetchTeamForGW(v); }} style={{ background: 'transparent', color: '#00ff85', border: 'none', fontWeight: 'bold', cursor: 'pointer', outline: 'none', fontSize: '14px' }}>
                             {[...Array(38)].map((_, i) => (
-                                <option key={i+1} value={i+1} style={{background: '#38003c'}}>
-                                    الجولة {i+1} {i+1 === currentGW + 1 ? '(القادمة 🔥)' : ''}
-                                </option>
+                                <option key={i+1} value={i+1} style={{background: '#38003c'}}>الجولة {i+1} {i+1 === currentGW + 1 ? '(القادمة 🔥)' : ''}</option>
                             ))}
                         </select>
                     </div>
                 </div>
-                <button onClick={() => { 
-                    const next = selectedGW + 1; 
-                    if (next <= 38) { 
-                        setSelectedGW(next); 
-                        fetchTeamForGW(next); 
-                    }
-                }} disabled={selectedGW >= 38} style={{ border: 'none', background: '#fff', padding: '12px', borderRadius: '50%', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', cursor: 'pointer' }}><FaArrowLeft /></button>
+                <button onClick={() => { const next = selectedGW + 1; if (next <= 38) { setSelectedGW(next); fetchTeamForGW(next); } }} disabled={selectedGW >= 38} style={{ border: 'none', background: '#fff', padding: '12px', borderRadius: '50%', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', cursor: 'pointer' }}><FaArrowLeft /></button>
             </div>
 
             {message && (
-                <div style={{ 
-                    padding: '10px 20px', 
-                    marginBottom: '20px', 
-                    borderRadius: '8px', 
-                    fontWeight:'bold', 
-                    backgroundColor: message.includes('✅') ? '#e8f5e9' : 
-                                    message.includes('❌') ? '#ffebee' : 
-                                    message.includes('⚠️') ? '#fff3e0' : 
-                                    message.includes('🤖') ? '#f3e5f5' : '#fff3e0', 
-                    color: message.includes('✅') ? 'green' : 
-                            message.includes('❌') ? '#c62828' : 
-                            message.includes('⚠️') ? '#e65100' : 
-                            message.includes('🤖') ? '#7b1fa2' : '#e65100', 
-                    textAlign:'center', 
-                    border: `1px solid ${message.includes('✅') ? 'green' : 
-                            message.includes('❌') ? '#ef9a9a' : 
-                            message.includes('⚠️') ? '#ffcc80' : 
-                            message.includes('🤖') ? '#e1bee7' : '#ffcc80'}`
-                }}>
+                <div style={{ padding: '10px 20px', marginBottom: '20px', borderRadius: '8px', fontWeight:'bold', textAlign:'center', backgroundColor: message.includes('✅') ? '#e8f5e9' : message.includes('❌') ? '#ffebee' : message.includes('⚠️') ? '#fff3e0' : message.includes('🤖') ? '#f3e5f5' : '#fff3e0', color: message.includes('✅') ? 'green' : message.includes('❌') ? '#c62828' : message.includes('⚠️') ? '#e65100' : message.includes('🤖') ? '#7b1fa2' : '#e65100', border: `1px solid ${message.includes('✅') ? 'green' : message.includes('❌') ? '#ef9a9a' : message.includes('⚠️') ? '#ffcc80' : message.includes('🤖') ? '#e1bee7' : '#ffcc80'}` }}>
                     {message}
                 </div>
             )}
 
-            {/* Chip Selection (Manager only) */}
             {isManager && isEditable && (
-                <div style={{ 
-                    marginBottom: '15px', 
-                    backgroundColor: 'white', 
-                    padding: '15px', 
-                    borderRadius: '12px', 
-                    display:'flex', 
-                    gap:'10px', 
-                    boxShadow: '0 2px 5px rgba(0,0,0,0.05)', 
-                    overflowX: 'auto', 
-                    scrollbarWidth: 'none',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center'
-                }}>
+                <div style={{ marginBottom: '15px', backgroundColor: 'white', padding: '15px', borderRadius: '12px', display:'flex', gap:'10px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', overflowX: 'auto', scrollbarWidth: 'none', flexWrap: 'wrap', justifyContent: 'center' }}>
                     <div style={{ width: '100%', marginBottom: '10px', textAlign: 'center' }}>
                         <h4 style={{ margin: '0', color: '#37003c', fontSize: '14px' }}>🎯 تفعيل خاص للجولة</h4>
-                        {activeChip === 'theBest' && (
-                            <div style={{ fontSize: '11px', color: '#7b1fa2', marginTop: '5px', padding: '5px', backgroundColor: '#f3e5f5', borderRadius: '5px' }}>
-                                {isDeadlinePassed 
-                                    ? '🤖 خاصية "The Best" مفعلة - سيتم تحديث الكابتن تلقائياً مع كل تحديث للنقاط' 
-                                    : '⚠️ بعد انتهاء الديدلاين، سيتم اختيار الكابتن الأعلى نقاطاً تلقائياً'
-                                }
-                            </div>
-                        )}
                     </div>
-                    
                     {Object.keys(CHIPS).map(chipId => {
                         const chip = CHIPS[chipId];
                         const usedInP1 = !!chipsHistory.p1[chipId];
@@ -517,274 +459,64 @@ const MyTeam = () => {
                         const isUsedInCurrentPhase = isCurrentInP1 ? usedInP1 : usedInP2;
                         const usedInOtherGwInPhase = isUsedInCurrentPhase && (isCurrentInP1 ? chipsHistory.p1[chipId] !== selectedGW : chipsHistory.p2[chipId] !== selectedGW);
                         const isDisabled = chipId !== 'none' && usedInOtherGwInPhase;
-
                         return (
-                            <button 
-                                key={chipId} 
-                                disabled={isDisabled}
-                                onClick={() => {
-                                    if (chipId === 'none' && activeChip === 'theBest') {
-                                        const confirmCancel = window.confirm(
-                                            'هل تريد إلغاء تفعيل خاصية "The Best"؟\n\n' +
-                                            'إذا ألغيت التفعيل، لن يتم اختيار الكابتن تلقائياً بناءً على النقاط.'
-                                        );
-                                        if (!confirmCancel) return;
-                                    }
-                                    setActiveChip(chipId);
-                                }} 
-                                style={{ 
-                                    padding: '8px 15px', 
-                                    borderRadius: '20px', 
-                                    border: activeChip === chipId ? `2px solid ${chipId === 'theBest' ? '#9c27b0' : '#00ff87'}` : '1px solid #ddd', 
-                                    cursor: isDisabled ? 'not-allowed' : (isEditable ? 'pointer' : 'not-allowed'), 
-                                    fontWeight: 'bold', 
-                                    fontSize: '12px',
-                                    backgroundColor: isDisabled ? '#e0e0e0' : (activeChip === chipId ? (chipId === 'theBest' ? '#9c27b0' : '#00ff87') : '#f5f5f5'), 
-                                    color: isDisabled ? '#9e9e9e' : (activeChip === chipId ? 
-                                        (chipId === 'theBest' ? 'white' : '#37003c') : 
-                                        '#555'), 
-                                    opacity: isDisabled ? 0.6 : (isEditable ? 1 : 0.6), 
-                                    whiteSpace: 'nowrap',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '5px',
-                                    minWidth: '120px',
-                                    justifyContent: 'center'
-                                }}>
-                                {chip.icon}
-                                {chip.label}
-                                {isDisabled && <FaLock size={10} style={{marginRight: '4px'}} />}
+                            <button key={chipId} disabled={isDisabled} onClick={() => setActiveChip(chipId)} style={{ padding: '8px 15px', borderRadius: '20px', border: activeChip === chipId ? `2px solid ${chipId === 'theBest' ? '#9c27b0' : '#00ff87'}` : '1px solid #ddd', cursor: isDisabled ? 'not-allowed' : (isEditable ? 'pointer' : 'not-allowed'), fontWeight: 'bold', fontSize: '12px', backgroundColor: isDisabled ? '#e0e0e0' : (activeChip === chipId ? (chipId === 'theBest' ? '#9c27b0' : '#00ff87') : '#f5f5f5'), color: isDisabled ? '#9e9e9e' : (activeChip === chipId ? (chipId === 'theBest' ? 'white' : '#37003c') : '#555'), opacity: isDisabled ? 0.6 : (isEditable ? 1 : 0.6), whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '5px', minWidth: '120px', justifyContent: 'center' }}>
+                                {chip.icon} {chip.label} {isDisabled && <FaLock size={10} style={{marginRight: '4px'}} />}
                             </button>
                         );
                     })}
                 </div>
             )}
 
-            {/* Active Chip Display */}
             {!isEditable && activeChip !== 'none' && (
-                <div style={{
-                    marginBottom: '15px',
-                    backgroundColor: '#38003c',
-                    color: '#00ff85',
-                    padding: '12px',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '12px',
-                    boxShadow: '0 4px 15px rgba(56,0,60,0.3)',
-                    border: '2px solid #00ff85'
-                }}>
-                    <div style={{ fontSize: '20px' }}>
-                        {CHIPS[activeChip]?.icon}
-                    </div>
+                <div style={{ marginBottom: '15px', backgroundColor: '#38003c', color: '#00ff85', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: '0 4px 15px rgba(56,0,60,0.3)', border: '2px solid #00ff85' }}>
+                    <div style={{ fontSize: '20px' }}>{CHIPS[activeChip]?.icon}</div>
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '2px' }}>الخاصية المفعلة في هذه الجولة:</div>
-                        <div style={{ fontSize: '16px', fontWeight: 'bold' }}>
-                            {CHIPS[activeChip]?.label}
-                        </div>
+                        <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{CHIPS[activeChip]?.label}</div>
                     </div>
                 </div>
             )}
 
-            {/* Pitch */}
             <div key={selectedGW} className="pitch-fade-in" style={{ maxWidth: '850px', margin: '0 auto' }}>
-                
                 {activeChip && activeChip !== 'none' && (
-                    <div style={{
-                        backgroundColor: '#38003c', color: '#00ff87', padding: '10px',
-                        borderRadius: '12px 12px 0 0', textAlign: 'center', fontWeight: 'bold',
-                        border: '2px solid #00ff87', borderBottom: 'none', display: 'flex',
-                        alignItems: 'center', justifyContent: 'center', gap: '10px'
-                    }}>
-                        {CHIPS[activeChip]?.icon}
-                        <span>الخاصية المستخدمة: {CHIPS[activeChip]?.label}</span>
+                    <div style={{ backgroundColor: '#38003c', color: '#00ff87', padding: '10px', borderRadius: '12px 12px 0 0', textAlign: 'center', fontWeight: 'bold', border: '2px solid #00ff87', borderBottom: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                        {CHIPS[activeChip]?.icon} <span>الخاصية المستخدمة: {CHIPS[activeChip]?.label}</span>
                     </div>
                 )}
-
-                <div style={{ 
-                    background: `repeating-linear-gradient(0deg, #2e7d32, #2e7d32 45px, #388e3c 45px, #388e3c 90px)`,
-                    borderRadius: activeChip && activeChip !== 'none' ? '0 0 20px 20px' : '20px', 
-                    padding: isMobile ? '30px 5px' : '60px 20px', minHeight: isMobile ? '450px' : '650px', 
-                    display:'flex', flexDirection:'column', justifyContent: 'center', border:'6px solid #fff', position:'relative', overflow:'hidden'
-                }}>
+                <div style={{ background: `repeating-linear-gradient(0deg, #2e7d32, #2e7d32 45px, #388e3c 45px, #388e3c 90px)`, borderRadius: activeChip && activeChip !== 'none' ? '0 0 20px 20px' : '20px', padding: isMobile ? '30px 5px' : '60px 20px', minHeight: isMobile ? '450px' : '650px', display:'flex', flexDirection:'column', justifyContent: 'center', border:'6px solid #fff', position:'relative', overflow:'hidden' }}>
                     <div style={{ position: 'absolute', top: '15px', left: '15px', right: '15px', bottom: '15px', border: '1px solid rgba(255,255,255,0.3)' }}></div>
                     <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '1px', background: 'rgba(255,255,255,0.3)' }}></div>
-                    
                     <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '25px' : '50px', alignItems: 'center', zIndex: 10 }}>
-                        {/* صف الكابتن */}
-                        <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                            {starters.filter(p => p.isCaptain).map(p => <PlayerCard key={p.userId} player={p} />)}
-                        </div>
-                        {/* صف الأساسيين الآخرين */}
-                        <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'center', 
-                            gap: isMobile ? '45px' : '90px', 
-                            width: '100%' 
-                        }}>
-                            {starters.filter(p => !p.isCaptain).map(p => <PlayerCard key={p.userId} player={p} />)}
-                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>{starters.filter(p => p.isCaptain).map(p => <PlayerCard key={p.userId} player={p} />)}</div>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '45px' : '90px', width: '100%' }}>{starters.filter(p => !p.isCaptain).map(p => <PlayerCard key={p.userId} player={p} />)}</div>
                     </div>
                 </div>
-
-                {/* Bench */}
                 <div style={{ marginTop: '15px', background: '#fff', padding: '15px', borderRadius: '20px', boxShadow: '0 5px 15px rgba(0,0,0,0.05)' }}>
                     <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#38003c', borderBottom: '1px solid #eee' }}>🛋 الاحتياط</div>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '5px' : '25px', flexWrap: 'wrap' }}>
-                        {bench.map(p => <PlayerCard key={p.userId} player={p} isSub={true} />)}
-                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '5px' : '25px', flexWrap: 'wrap' }}>{bench.map(p => <PlayerCard key={p.userId} player={p} isSub={true} />)}</div>
                 </div>
-
-                {/* Save Button */}
                 {isManager && isEditable && (
-                    <button onClick={handleSaveLineup} style={{ 
-                        width: '100%', 
-                        padding: '15px', 
-                        marginTop: '15px', 
-                        backgroundColor: activeChip === 'theBest' ? '#9c27b0' : '#00ff85', 
-                        color: activeChip === 'theBest' ? 'white' : '#37003c', 
-                        border: 'none', 
-                        borderRadius: '12px', 
-                        fontSize: '18px', 
-                        fontWeight: 'bold', 
-                        cursor: 'pointer', 
-                        boxShadow: activeChip === 'theBest' ? '0 6px 15px rgba(156, 39, 176, 0.3)' : '0 6px 15px rgba(0,255,133,0.3)', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        gap: '10px' 
-                    }}>
-                        <FaCheck /> حفظ التشكيلة {activeChip === 'theBest' && 'مع تفعيل "The Best"'}
-                    </button>
+                    <button onClick={handleSaveLineup} style={{ width: '100%', padding: '15px', marginTop: '15px', backgroundColor: activeChip === 'theBest' ? '#9c27b0' : '#00ff85', color: activeChip === 'theBest' ? 'white' : '#37003c', border: 'none', borderRadius: '12px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', boxShadow: activeChip === 'theBest' ? '0 6px 15px rgba(156, 39, 176, 0.3)' : '0 6px 15px rgba(0,255,133,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}><FaCheck /> حفظ التشكيلة {activeChip === 'theBest' && 'مع تفعيل "The Best"'}</button>
                 )}
             </div>
 
-            {/* Pending Members */}
             {isManager && team.pendingMembers && team.pendingMembers.length > 0 && (
-                <div style={{
-                    marginTop: '30px',
-                    backgroundColor: '#fff9c4',
-                    padding: '20px',
-                    borderRadius: '12px',
-                    border: '2px solid #ffd54f',
-                    boxShadow: '0 4px 12px rgba(255, 213, 79, 0.3)'
-                }}>
-                    <h3 style={{ 
-                        color: '#f57c00', 
-                        marginBottom: '15px', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '10px',
-                        borderBottom: '2px solid #ffd54f',
-                        paddingBottom: '10px'
-                    }}>
-                        <FaUserFriends size={20} /> 
-                        <span>طلبات الانضمام ({team.pendingMembers.length})</span>
-                        <span style={{
-                            fontSize: '12px',
-                            backgroundColor: '#4caf50',
-                            color: 'white',
-                            padding: '2px 8px',
-                            borderRadius: '10px',
-                            marginRight: '10px'
-                        }}>
-                            ⏰ متاح دائماً
-                        </span>
-                    </h3>
-                    
-                    <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
-                        gap: '15px', 
-                        marginTop: '15px'
-                    }}>
+                <div style={{ marginTop: '30px', backgroundColor: '#fff9c4', padding: '20px', borderRadius: '12px', border: '2px solid #ffd54f', boxShadow: '0 4px 12px rgba(255, 213, 79, 0.3)' }}>
+                    <h3 style={{ color: '#f57c00', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '2px solid #ffd54f', paddingBottom: '10px' }}><FaUserFriends size={20} /> <span>طلبات الانضمام ({team.pendingMembers.length})</span></h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px', marginTop: '15px' }}>
                         {team.pendingMembers.map((player, index) => (
-                            <div key={player._id || index} style={{
-                                backgroundColor: 'white',
-                                padding: '15px',
-                                borderRadius: '10px',
-                                border: '1px solid #ffe082',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '12px'
-                            }}>
+                            <div key={player._id || index} style={{ backgroundColor: 'white', padding: '15px', borderRadius: '10px', border: '1px solid #ffe082', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{
-                                        width: '45px',
-                                        height: '45px',
-                                        borderRadius: '50%',
-                                        backgroundColor: '#37003c',
-                                        color: 'white',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontWeight: 'bold',
-                                        fontSize: '18px'
-                                    }}>
-                                        {player.username?.charAt(0)?.toUpperCase() || '?'}
-                                    </div>
+                                    <div style={{ width: '45px', height: '45px', borderRadius: '50%', backgroundColor: '#37003c', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '18px' }}>{player.username?.charAt(0)?.toUpperCase() || '?'}</div>
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#37003c' }}>
-                                            {player.username || 'لاعب جديد'}
-                                        </div>
-                                        <div style={{ fontSize: '13px', color: '#666', marginTop: '3px' }}>
-                                            <span style={{ fontWeight: 'bold' }}>FPL ID:</span> {player.fplId || 'غير معروف'}
-                                        </div>
-                                        {player.email && (
-                                            <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>
-                                                ✉️ {player.email}
-                                            </div>
-                                        )}
+                                        <div style={{ fontWeight: 'bold', fontSize: '16px', color: '#37003c' }}>{player.username || 'لاعب جديد'}</div>
+                                        <div style={{ fontSize: '13px', color: '#666', marginTop: '3px' }}><span style={{ fontWeight: 'bold' }}>FPL ID:</span> {player.fplId || 'غير معروف'}</div>
                                     </div>
                                 </div>
-                                
-                                <div style={{ 
-                                    display: 'flex', 
-                                    gap: '10px',
-                                    marginTop: '5px'
-                                }}>
-                                    <button 
-                                        onClick={() => handleAcceptPlayer(player._id)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '10px',
-                                            backgroundColor: '#4caf50',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                            cursor: 'pointer',
-                                            fontWeight: 'bold',
-                                            fontSize: '14px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '8px'
-                                        }}
-                                    >
-                                        <FaCheck size={14} /> قبول
-                                    </button>
-                                    <button 
-                                        onClick={() => handleRejectPlayer(player._id)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '10px',
-                                            backgroundColor: '#f5f5f5',
-                                            color: '#d32f2f',
-                                            border: '1px solid #ffcdd2',
-                                            borderRadius: '6px',
-                                            cursor: 'pointer',
-                                            fontWeight: 'bold',
-                                            fontSize: '14px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '8px'
-                                        }}
-                                    >
-                                        <FaTimes size={14} /> رفض
-                                    </button>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+                                    <button onClick={() => handleAcceptPlayer(player._id)} style={{ flex: 1, padding: '10px', backgroundColor: '#4caf50', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}><FaCheck size={14} /> قبول</button>
+                                    <button onClick={() => handleRejectPlayer(player._id)} style={{ flex: 1, padding: '10px', backgroundColor: '#f5f5f5', color: '#d32f2f', border: '1px solid #ffcdd2', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}><FaTimes size={14} /> رفض</button>
                                 </div>
                             </div>
                         ))}
@@ -792,50 +524,14 @@ const MyTeam = () => {
                 </div>
             )}
 
-            {/* No Pending Members */}
             {isManager && (!team.pendingMembers || team.pendingMembers.length === 0) && (
-                <div style={{
-                    marginTop: '30px',
-                    backgroundColor: '#f5f5f5',
-                    padding: '30px',
-                    borderRadius: '12px',
-                    textAlign: 'center',
-                    color: '#666',
-                    border: '2px dashed #ddd'
-                }}>
+                <div style={{ marginTop: '30px', backgroundColor: '#f5f5f5', padding: '30px', borderRadius: '12px', textAlign: 'center', color: '#666', border: '2px dashed #ddd' }}>
                     <FaUserFriends size={50} style={{ marginBottom: '15px', color: '#9e9e9e' }} />
-                    <div style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '10px' }}>
-                        لا توجد طلبات انضمام جديدة
-                    </div>
-                    <div style={{ fontSize: '14px', color: '#888' }}>
-                        سيظهر هنا أي طلبات انضمام جديدة من اللاعبين
-                    </div>
+                    <div style={{ fontWeight: 'bold', fontSize: '18px', marginBottom: '10px' }}>لا توجد طلبات انضمام جديدة</div>
                 </div>
             )}
 
-            <style>{`
-                .spin { animation: spin 1s linear infinite; } 
-                @keyframes spin { 100% { transform: rotate(360deg); } }
-                
-                .pitch-fade-in {
-                    animation: fadeInSlide 0.4s ease-out forwards;
-                }
-
-                @keyframes fadeInSlide {
-                    from {
-                        opacity: 0;
-                        transform: translateY(10px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-
-                @media (max-width: 600px) {
-                    .pitch-fade-in { max-width: 100% !important; }
-                }
-            `}</style>
+            <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } } .pitch-fade-in { animation: fadeInSlide 0.4s ease-out forwards; } @keyframes fadeInSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } } @media (max-width: 600px) { .pitch-fade-in { max-width: 100% !important; } }`}</style>
         </div>
     );
 };
