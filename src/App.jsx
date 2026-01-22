@@ -17,7 +17,8 @@ import AwardsCenter from './pages/AwardsCenter';
 import AdminDeadlines from './pages/AdminDeadlines'; // تأكد من صحة المسار
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import TeamsManagement from './pages/TeamsManagement'
+import TeamsManagement from './pages/TeamsManagement';
+import MediaCenter from './pages/MediaCenter';
 
 const PrivateRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -44,6 +45,7 @@ function App() {
 		  <Route path="/forgot-password" element={<ForgotPassword />} />
 		  <Route path="/reset-password/:token" element={<ResetPassword />} />
 		  <Route path="/teams-management" element={<TeamsManagement />} />
+		  <Route path="/media-center" element={<MediaCenter />} />
           
           <Route 
             path="/dashboard" 
