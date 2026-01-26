@@ -47,7 +47,7 @@ const MatchDetails = () => {
     const [exporting, setExporting] = useState(false);
     const matchRef = useRef(null);
 
-    useEffect(() => {
+    /*useEffect(() => {
         const fetchDetails = async () => {
             try {
                 const res = await API.get(`/fixtures/details/${fixtureId}`);
@@ -58,7 +58,33 @@ const MatchDetails = () => {
             finally { setLoading(false); }
         };
         fetchDetails();
-    }, [fixtureId]);
+    }, [fixtureId]);*/
+	
+	useEffect(() => {
+    const fetchDetails = async () => {
+        try {
+            const res = await API.get(`/fixtures/details/${fixtureId}`);
+            setData(res.data);
+            
+            const leagueRes = await API.get('/leagues/me');
+            setLeagueInfo(leagueRes.data);
+        } catch (err) {
+            // التحقق إذا كان الخطأ بسبب حجب الجولة القادمة
+            if (err.response && err.response.status === 403) {
+                setData({ 
+                    isHidden: true, 
+                    message: err.response.data.message,
+                    fixture: err.response.data.fixture // لعرض أسماء الفرق حتى لو التشكيلة مخفية
+                });
+            } else {
+                console.error(err);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchDetails();
+}, [fixtureId]);
 
     const handleExportImage = async () => {
         if (!matchRef.current) return;
@@ -74,6 +100,22 @@ const MatchDetails = () => {
     };
 
     if (loading || !data) return <div style={{display:'flex', height:'100vh', justifyContent:'center', alignItems:'center'}}><FaSpinner className="fa-spin" size={40} color="#37003c" /></div>;
+	
+	// أضف هذا الشرط مباشرة بعد الـ Loading وقبل تعريف المتغيرات (fixture, homeLineup)
+if (data?.isHidden) {
+    return (
+        <div style={{ padding: '20px', textAlign: 'center', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#f0f2f5' }}>
+            <div style={{ background: '#fff', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', maxWidth: '400px' }}>
+                <FaShieldAlt size={50} color="#37003c" style={{ marginBottom: '15px' }} />
+                <h2 style={{ fontWeight: '1000', color: '#37003c' }}>🔒 {data.message}</h2>
+                <p style={{ color: '#666', marginTop: '10px' }}>يمكنك رؤية التشكيلات فقط بعد انطلاق الجولة رسمياً.</p>
+                <button onClick={() => navigate(-1)} style={{ marginTop: '20px', background: '#37003c', color: '#00ff85', border: 'none', padding: '10px 25px', borderRadius: '12px', fontWeight: '1000' }}>
+                    العودة للجدول
+                </button>
+            </div>
+        </div>
+    );
+}
 
     const { fixture, homeLineup, awayLineup } = data;
 	const sortPlayers = (lineupArray) => {
