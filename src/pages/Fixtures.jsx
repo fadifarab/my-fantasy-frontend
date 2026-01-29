@@ -32,7 +32,10 @@ const Fixtures = () => {
         }
         const { data: lData } = await API.get('/leagues/me');
         if (lData?.logoUrl) setLeagueLogo(lData.logoUrl);
-      } catch (error) { setError("فشل في تحميل بيانات الصفحة"); setCurrentGw(1); }
+      } catch (error) { 
+        setError("فشل في تحميل بيانات الصفحة"); 
+        setCurrentGw(1); 
+      }
       finally { setLoading(false); }
     };
     initPage();
@@ -58,94 +61,227 @@ const Fixtures = () => {
   };
 
   if (currentGw === null && loading) return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontSize: isMobile ? '24px' : '48px', fontWeight: 'bold' }}>جاري التحميل...</div>
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+      color: 'white', 
+      fontSize: window.innerWidth < 768 ? '24px' : '48px', 
+      fontWeight: 'bold' 
+    }}>
+      جاري التحميل...
+    </div>
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #f8fafc 0%, #e2e8f0 100%)', direction: 'rtl', padding: isMobile ? '15px' : '30px', fontFamily: '"Cairo", sans-serif' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(to bottom, #f8fafc 0%, #e2e8f0 100%)', 
+      direction: 'rtl', 
+      padding: window.innerWidth < 768 ? '10px' : '30px', 
+      fontFamily: '"Cairo", sans-serif' 
+    }}>
       
-      {/* 🚀 الـ Header المصلح مع زر العودة 🚀 */}
+      {/* Header - متجاوب تماماً */}
       <div style={{ 
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+        alignItems: window.innerWidth < 768 ? 'stretch' : 'center',
         background: 'white',
-        padding: isMobile ? '15px' : '20px 30px',
+        padding: window.innerWidth < 768 ? '15px' : '20px 30px',
         borderRadius: '15px',
         marginBottom: '25px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
         border: '2px solid #e2e8f0',
-        gap: '20px',
-        position: 'relative' // للسماح بتموضع زر العودة
+        gap: window.innerWidth < 768 ? '15px' : '20px'
       }}>
-        {/* زر العودة المكتشف غيابه */}
-        <button 
-          onClick={() => navigate('/dashboard')}
-          style={{ 
-            width: isMobile ? '45px' : '55px', 
-            height: isMobile ? '45px' : '55px', 
-            borderRadius: '12px', 
-            background: 'linear-gradient(135deg, #38003c 0%, #58005e 100%)', 
-            border: 'none', 
-            color: 'white', 
-            cursor: 'pointer', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
-          }}
-        >
-          <FaArrowRight size={isMobile ? 20 : 24} />
-        </button>
-
-        {/* شعار البطولة */}
+        {/* الجزء العلوي للهاتف: زر العودة + الشعار */}
         <div style={{
-          width: isMobile ? '55px' : '80px', 
-          height: isMobile ? '55px' : '80px',
-          borderRadius: '10px',
-          padding: '4px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px solid #eee'
+          justifyContent: window.innerWidth < 768 ? 'space-between' : 'flex-start',
+          gap: '15px'
         }}>
-          <img 
-            src={leagueLogo || 'default-logo.png'} 
-            alt="League Logo" 
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-          />
+          <button 
+            onClick={() => navigate('/dashboard')}
+            style={{ 
+              width: window.innerWidth < 768 ? '45px' : '55px', 
+              height: window.innerWidth < 768 ? '45px' : '55px', 
+              borderRadius: '12px', 
+              background: 'linear-gradient(135deg, #38003c 0%, #58005e 100%)', 
+              border: 'none', 
+              color: 'white', 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+              flexShrink: 0
+            }}
+          >
+            <FaArrowRight size={window.innerWidth < 768 ? 20 : 24} />
+          </button>
+
+          {/* شعار البطولة */}
+          <div style={{
+            width: window.innerWidth < 768 ? '50px' : '80px', 
+            height: window.innerWidth < 768 ? '50px' : '80px',
+            borderRadius: '10px',
+            padding: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px solid #eee',
+            flexShrink: 0
+          }}>
+            <img 
+              src={leagueLogo || 'default-logo.png'} 
+              alt="League Logo" 
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+            />
+          </div>
+
+          {/* اسم البطولة - يظهر فقط في الهاتف */}
+          {window.innerWidth < 768 && (
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              flex: 1
+            }}>
+              <h1 style={{
+                margin: 0,
+                fontSize: '20px', 
+                fontWeight: '900',
+                color: '#38003c',
+                lineHeight: '1.2',
+                textAlign: 'right'
+              }}>
+                FPL ZEDDINE
+              </h1>
+              <span style={{ 
+                fontSize: '12px', 
+                color: '#718096', 
+                fontWeight: '700',
+                textAlign: 'right'
+              }}>
+                الدوري الرسمي للبطولة
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* اسم البطولة */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <h1 style={{
-            margin: 0,
-            fontSize: isMobile ? '22px' : '34px', 
-            fontWeight: '900',
-            color: '#38003c',
-            lineHeight: '1.2'
+        {/* اسم البطولة - للحاسوب والأجهزة الكبيرة */}
+        {window.innerWidth >= 768 && (
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            flex: 1
           }}>
-            FPL ZEDDINE
-          </h1>
-          <span style={{ fontSize: '13px', color: '#718096', fontWeight: '700' }}>الدوري الرسمي للبطولة</span>
-        </div>
+            <h1 style={{
+              margin: 0,
+              fontSize: '34px', 
+              fontWeight: '900',
+              color: '#38003c',
+              lineHeight: '1.2'
+            }}>
+              FPL ZEDDINE
+            </h1>
+            <span style={{ 
+              fontSize: '13px', 
+              color: '#718096', 
+              fontWeight: '700' 
+            }}>
+              الدوري الرسمي للبطولة
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Selector - متجاوب */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobile ? '15px' : '40px', marginBottom: '20px', background: 'white', padding: isMobile ? '15px' : '20px', borderRadius: '20px', border: '2px solid #e2e8f0' }}>
-        <button onClick={() => changeGw('prev')} disabled={currentGw <= 1} style={{ width: '50px', height: '50px', borderRadius: '10px', background: currentGw <= 1 ? '#e2e8f0' : '#667eea', border: 'none', color: 'white' }}><FaChevronRight size={24} /></button>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        gap: window.innerWidth < 768 ? '15px' : '40px', 
+        marginBottom: '20px', 
+        background: 'white', 
+        padding: window.innerWidth < 768 ? '12px' : '20px', 
+        borderRadius: '20px', 
+        border: '2px solid #e2e8f0',
+        maxWidth: '600px',
+        margin: '0 auto 20px'
+      }}>
+        <button 
+          onClick={() => changeGw('prev')} 
+          disabled={currentGw <= 1} 
+          style={{ 
+            width: window.innerWidth < 768 ? '45px' : '50px', 
+            height: window.innerWidth < 768 ? '45px' : '50px', 
+            borderRadius: '10px', 
+            background: currentGw <= 1 ? '#e2e8f0' : '#667eea', 
+            border: 'none', 
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <FaChevronRight size={window.innerWidth < 768 ? 20 : 24} />
+        </button>
+        
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '14px', color: '#718096', fontWeight: '600' }}>الجولة</div>
-          <div style={{ fontSize: '40px', fontWeight: '900', color: '#2d3748', lineHeight: '1' }}>{currentGw || 1}</div>
+          <div style={{ 
+            fontSize: window.innerWidth < 768 ? '12px' : '14px', 
+            color: '#718096', 
+            fontWeight: '600' 
+          }}>
+            الجولة
+          </div>
+          <div style={{ 
+            fontSize: window.innerWidth < 768 ? '36px' : '40px', 
+            fontWeight: '900', 
+            color: '#2d3748', 
+            lineHeight: '1' 
+          }}>
+            {currentGw || 1}
+          </div>
         </div>
-        <button onClick={() => changeGw('next')} disabled={currentGw >= 38} style={{ width: '50px', height: '50px', borderRadius: '10px', background: currentGw >= 38 ? '#e2e8f0' : '#667eea', border: 'none', color: 'white' }}><FaChevronLeft size={24} /></button>
+        
+        <button 
+          onClick={() => changeGw('next')} 
+          disabled={currentGw >= 38} 
+          style={{ 
+            width: window.innerWidth < 768 ? '45px' : '50px', 
+            height: window.innerWidth < 768 ? '45px' : '50px', 
+            borderRadius: '10px', 
+            background: currentGw >= 38 ? '#e2e8f0' : '#667eea', 
+            border: 'none', 
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <FaChevronLeft size={window.innerWidth < 768 ? 20 : 24} />
+        </button>
       </div>
 
-      {/* Fixtures List */}
-      <div style={{ background: 'white', borderRadius: '20px', padding: isMobile ? '15px' : '25px', boxShadow: '0 10px 20px rgba(0,0,0,0.05)', maxWidth: '900px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gap: '15px' }}>
+      {/* Fixtures List - متجاوب مع Grid */}
+      <div style={{ 
+        background: 'white', 
+        borderRadius: '20px', 
+        padding: window.innerWidth < 768 ? '12px' : '25px', 
+        boxShadow: '0 10px 20px rgba(0,0,0,0.05)', 
+        maxWidth: '900px', 
+        margin: '0 auto' 
+      }}>
+        <div style={{ display: 'grid', gap: '12px' }}>
           {fixtures.map((match, index) => {
             const homeScore = match.homeScore ?? 0;
             const awayScore = match.awayScore ?? 0;
+            const isSmallScreen = window.innerWidth < 480;
 
             return (
               <div
@@ -153,21 +289,49 @@ const Fixtures = () => {
                 onClick={() => navigate(`/match/${match._id}`)}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: isMobile ? '1fr 80px 1fr' : '1fr 150px 1fr',
+                  gridTemplateColumns: window.innerWidth < 768 ? 
+                    (window.innerWidth < 480 ? '1fr 70px 1fr' : '1fr 90px 1fr') : 
+                    '1fr 150px 1fr',
                   alignItems: 'center',
-                  padding: isMobile ? '12px 10px' : '20px 30px',
-                  borderRadius: '18px',
+                  padding: window.innerWidth < 768 ? '10px 8px' : '20px 30px',
+                  borderRadius: '16px',
                   background: match.isFinished ? '#ffffff' : '#f8fafc',
-                  border: `3px solid ${match.isFinished ? '#48bb78' : '#e2e8f0'}`,
+                  border: `2px solid ${match.isFinished ? '#48bb78' : '#e2e8f0'}`,
                   cursor: 'pointer',
                   transition: 'all 0.3s',
-                  marginBottom: '10px'
+                  marginBottom: '8px',
+                  gap: window.innerWidth < 768 ? '8px' : '15px'
                 }}
               >
                 {/* Home Team */}
-                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'flex-start', gap: '15px' }}>
-                  <img src={match.homeTeamId?.logoUrl} style={{ width: isMobile ? '40px' : '60px', height: isMobile ? '40px' : '60px', objectFit: 'contain' }} />
-                  <span style={{ fontWeight: '900', fontSize: isMobile ? '14px' : '22px', color: '#2d3748' }}>{match.homeTeamId?.name}</span>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: window.innerWidth < 480 ? 'column' : 'row',
+                  alignItems: 'center',
+                  justifyContent: window.innerWidth < 768 ? 'center' : 'flex-start',
+                  gap: window.innerWidth < 768 ? '8px' : '15px',
+                  textAlign: window.innerWidth < 480 ? 'center' : 'right'
+                }}>
+                  <img 
+                    src={match.homeTeamId?.logoUrl} 
+                    alt={match.homeTeamId?.name}
+                    style={{ 
+                      width: window.innerWidth < 768 ? 
+                        (window.innerWidth < 480 ? '35px' : '40px') : '60px', 
+                      height: window.innerWidth < 768 ? 
+                        (window.innerWidth < 480 ? '35px' : '40px') : '60px', 
+                      objectFit: 'contain' 
+                    }} 
+                  />
+                  <span style={{ 
+                    fontWeight: '900', 
+                    fontSize: window.innerWidth < 768 ? 
+                      (window.innerWidth < 480 ? '12px' : '14px') : '22px', 
+                    color: '#2d3748',
+                    lineHeight: '1.2'
+                  }}>
+                    {match.homeTeamId?.name}
+                  </span>
                 </div>
 
                 {/* Score Box */}
@@ -179,9 +343,10 @@ const Fixtures = () => {
                       alignItems: 'center', 
                       background: '#2d3748',
                       color: '#ffffff',
-                      padding: '8px 12px', 
+                      padding: window.innerWidth < 768 ? '6px 8px' : '8px 12px', 
                       borderRadius: '10px',
-                      fontSize: isMobile ? '18px' : '26px',
+                      fontSize: window.innerWidth < 768 ? 
+                        (window.innerWidth < 480 ? '16px' : '18px') : '26px',
                       fontWeight: '900',
                       gap: '8px'
                     }}>
@@ -190,20 +355,74 @@ const Fixtures = () => {
                       <span>{awayScore}</span>
                     </div>
                   ) : (
-                    <div style={{ background: '#e2e8f0', color: '#2d3748', padding: '5px 15px', borderRadius: '20px', fontWeight: '900', fontSize: '14px' }}>VS</div>
+                    <div style={{ 
+                      background: '#e2e8f0', 
+                      color: '#2d3748', 
+                      padding: window.innerWidth < 768 ? '4px 12px' : '5px 15px', 
+                      borderRadius: '20px', 
+                      fontWeight: '900', 
+                      fontSize: window.innerWidth < 768 ? '12px' : '14px' 
+                    }}>
+                      VS
+                    </div>
                   )}
                 </div>
 
                 {/* Away Team */}
-                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row-reverse', alignItems: 'center', justifyContent: 'flex-start', gap: '15px' }}>
-                  <img src={match.awayTeamId?.logoUrl} style={{ width: isMobile ? '40px' : '60px', height: isMobile ? '40px' : '60px', objectFit: 'contain' }} />
-                  <span style={{ fontWeight: '900', fontSize: isMobile ? '14px' : '22px', color: '#2d3748' }}>{match.awayTeamId?.name}</span>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: window.innerWidth < 480 ? 'column' : 'row',
+                  alignItems: 'center',
+                  justifyContent: window.innerWidth < 768 ? 'center' : 'flex-end',
+                  gap: window.innerWidth < 768 ? '8px' : '15px',
+                  textAlign: window.innerWidth < 480 ? 'center' : 'left'
+                }}>
+                  <img 
+                    src={match.awayTeamId?.logoUrl} 
+                    alt={match.awayTeamId?.name}
+                    style={{ 
+                      width: window.innerWidth < 768 ? 
+                        (window.innerWidth < 480 ? '35px' : '40px') : '60px', 
+                      height: window.innerWidth < 768 ? 
+                        (window.innerWidth < 480 ? '35px' : '40px') : '60px', 
+                      objectFit: 'contain' 
+                    }} 
+                  />
+                  <span style={{ 
+                    fontWeight: '900', 
+                    fontSize: window.innerWidth < 768 ? 
+                      (window.innerWidth < 480 ? '12px' : '14px') : '22px', 
+                    color: '#2d3748',
+                    lineHeight: '1.2'
+                  }}>
+                    {match.awayTeamId?.name}
+                  </span>
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* رسالة الخطأ */}
+      {error && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#ff6b6b',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '10px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+          zIndex: 1000,
+          maxWidth: '90%',
+          textAlign: 'center'
+        }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 };
