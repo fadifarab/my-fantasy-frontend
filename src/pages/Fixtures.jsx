@@ -11,14 +11,7 @@ const Fixtures = () => {
   const [loading, setLoading] = useState(true);
   const [leagueLogo, setLeagueLogo] = useState('');
   const [error, setError] = useState(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     const initPage = async () => {
@@ -84,7 +77,7 @@ const Fixtures = () => {
       fontFamily: '"Cairo", sans-serif' 
     }}>
       
-      {/* Header - متجاوب تماماً */}
+      {/* Header */}
       <div style={{ 
         display: 'flex',
         flexDirection: window.innerWidth < 768 ? 'column' : 'row',
@@ -97,7 +90,6 @@ const Fixtures = () => {
         border: '2px solid #e2e8f0',
         gap: window.innerWidth < 768 ? '15px' : '20px'
       }}>
-        {/* الجزء العلوي للهاتف: زر العودة + الشعار */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -124,7 +116,6 @@ const Fixtures = () => {
             <FaArrowRight size={window.innerWidth < 768 ? 20 : 24} />
           </button>
 
-          {/* شعار البطولة */}
           <div style={{
             width: window.innerWidth < 768 ? '50px' : '80px', 
             height: window.innerWidth < 768 ? '50px' : '80px',
@@ -143,7 +134,6 @@ const Fixtures = () => {
             />
           </div>
 
-          {/* اسم البطولة - يظهر فقط في الهاتف */}
           {window.innerWidth < 768 && (
             <div style={{ 
               display: 'flex', 
@@ -172,7 +162,6 @@ const Fixtures = () => {
           )}
         </div>
 
-        {/* اسم البطولة - للحاسوب والأجهزة الكبيرة */}
         {window.innerWidth >= 768 && (
           <div style={{ 
             display: 'flex', 
@@ -199,7 +188,7 @@ const Fixtures = () => {
         )}
       </div>
 
-      {/* Selector - متجاوب */}
+      {/* Selector */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
@@ -268,7 +257,7 @@ const Fixtures = () => {
         </button>
       </div>
 
-      {/* Fixtures List - متجاوب مع Grid */}
+      {/* Fixtures List - مع إصلاح مشكلة بوكس النتيجة */}
       <div style={{ 
         background: 'white', 
         borderRadius: '20px', 
@@ -281,7 +270,36 @@ const Fixtures = () => {
           {fixtures.map((match, index) => {
             const homeScore = match.homeScore ?? 0;
             const awayScore = match.awayScore ?? 0;
-            const isSmallScreen = window.innerWidth < 480;
+            const isVerySmallScreen = window.innerWidth < 400;
+            const isSmallScreen = window.innerWidth < 768;
+
+            // تحديد حجم بوكس النسبة بناءً على حجم الشاشة
+            const getScoreBoxStyles = () => {
+              if (window.innerWidth < 400) {
+                return {
+                  fontSize: '14px',
+                  padding: '4px 8px',
+                  minWidth: '60px',
+                  gap: '4px'
+                };
+              } else if (window.innerWidth < 768) {
+                return {
+                  fontSize: '16px',
+                  padding: '6px 10px',
+                  minWidth: '70px',
+                  gap: '6px'
+                };
+              } else {
+                return {
+                  fontSize: '26px',
+                  padding: '8px 12px',
+                  minWidth: '100px',
+                  gap: '8px'
+                };
+              }
+            };
+
+            const scoreBoxStyles = getScoreBoxStyles();
 
             return (
               <div
@@ -290,7 +308,7 @@ const Fixtures = () => {
                 style={{
                   display: 'grid',
                   gridTemplateColumns: window.innerWidth < 768 ? 
-                    (window.innerWidth < 480 ? '1fr 70px 1fr' : '1fr 90px 1fr') : 
+                    (window.innerWidth < 400 ? '1fr auto 1fr' : '1fr 90px 1fr') : 
                     '1fr 150px 1fr',
                   alignItems: 'center',
                   padding: window.innerWidth < 768 ? '10px 8px' : '20px 30px',
@@ -306,27 +324,27 @@ const Fixtures = () => {
                 {/* Home Team */}
                 <div style={{ 
                   display: 'flex', 
-                  flexDirection: window.innerWidth < 480 ? 'column' : 'row',
+                  flexDirection: window.innerWidth < 400 ? 'column' : 'row',
                   alignItems: 'center',
                   justifyContent: window.innerWidth < 768 ? 'center' : 'flex-start',
                   gap: window.innerWidth < 768 ? '8px' : '15px',
-                  textAlign: window.innerWidth < 480 ? 'center' : 'right'
+                  textAlign: window.innerWidth < 400 ? 'center' : 'right'
                 }}>
                   <img 
                     src={match.homeTeamId?.logoUrl} 
                     alt={match.homeTeamId?.name}
                     style={{ 
                       width: window.innerWidth < 768 ? 
-                        (window.innerWidth < 480 ? '35px' : '40px') : '60px', 
+                        (window.innerWidth < 400 ? '30px' : '35px') : '60px', 
                       height: window.innerWidth < 768 ? 
-                        (window.innerWidth < 480 ? '35px' : '40px') : '60px', 
+                        (window.innerWidth < 400 ? '30px' : '35px') : '60px', 
                       objectFit: 'contain' 
                     }} 
                   />
                   <span style={{ 
                     fontWeight: '900', 
                     fontSize: window.innerWidth < 768 ? 
-                      (window.innerWidth < 480 ? '12px' : '14px') : '22px', 
+                      (window.innerWidth < 400 ? '11px' : '13px') : '22px', 
                     color: '#2d3748',
                     lineHeight: '1.2'
                   }}>
@@ -334,8 +352,12 @@ const Fixtures = () => {
                   </span>
                 </div>
 
-                {/* Score Box */}
-                <div style={{ textAlign: 'center' }}>
+                {/* Score Box - تم إصلاحه */}
+                <div style={{ 
+                  textAlign: 'center',
+                  display: 'flex',
+                  justifyContent: 'center'
+                }}>
                   {match.isFinished ? (
                     <div style={{ 
                       display: 'flex', 
@@ -343,16 +365,28 @@ const Fixtures = () => {
                       alignItems: 'center', 
                       background: '#2d3748',
                       color: '#ffffff',
-                      padding: window.innerWidth < 768 ? '6px 8px' : '8px 12px', 
+                      padding: scoreBoxStyles.padding,
                       borderRadius: '10px',
-                      fontSize: window.innerWidth < 768 ? 
-                        (window.innerWidth < 480 ? '16px' : '18px') : '26px',
+                      fontSize: scoreBoxStyles.fontSize,
                       fontWeight: '900',
-                      gap: '8px'
+                      gap: scoreBoxStyles.gap,
+                      minWidth: scoreBoxStyles.minWidth,
+                      boxSizing: 'border-box',
+                      flexShrink: 0
                     }}>
-                      <span>{homeScore}</span>
-                      <span style={{ color: '#48bb78' }}>-</span>
-                      <span>{awayScore}</span>
+                      <span style={{ 
+                        minWidth: window.innerWidth < 400 ? '15px' : '20px',
+                        textAlign: 'center'
+                      }}>
+                        {homeScore}
+                      </span>
+                      <span style={{ color: '#48bb78', padding: '0 2px' }}>-</span>
+                      <span style={{ 
+                        minWidth: window.innerWidth < 400 ? '15px' : '20px',
+                        textAlign: 'center'
+                      }}>
+                        {awayScore}
+                      </span>
                     </div>
                   ) : (
                     <div style={{ 
@@ -361,7 +395,8 @@ const Fixtures = () => {
                       padding: window.innerWidth < 768 ? '4px 12px' : '5px 15px', 
                       borderRadius: '20px', 
                       fontWeight: '900', 
-                      fontSize: window.innerWidth < 768 ? '12px' : '14px' 
+                      fontSize: window.innerWidth < 768 ? '12px' : '14px',
+                      minWidth: window.innerWidth < 400 ? '50px' : '60px'
                     }}>
                       VS
                     </div>
@@ -371,27 +406,27 @@ const Fixtures = () => {
                 {/* Away Team */}
                 <div style={{ 
                   display: 'flex', 
-                  flexDirection: window.innerWidth < 480 ? 'column' : 'row',
+                  flexDirection: window.innerWidth < 400 ? 'column' : 'row',
                   alignItems: 'center',
                   justifyContent: window.innerWidth < 768 ? 'center' : 'flex-end',
                   gap: window.innerWidth < 768 ? '8px' : '15px',
-                  textAlign: window.innerWidth < 480 ? 'center' : 'left'
+                  textAlign: window.innerWidth < 400 ? 'center' : 'left'
                 }}>
                   <img 
                     src={match.awayTeamId?.logoUrl} 
                     alt={match.awayTeamId?.name}
                     style={{ 
                       width: window.innerWidth < 768 ? 
-                        (window.innerWidth < 480 ? '35px' : '40px') : '60px', 
+                        (window.innerWidth < 400 ? '30px' : '35px') : '60px', 
                       height: window.innerWidth < 768 ? 
-                        (window.innerWidth < 480 ? '35px' : '40px') : '60px', 
+                        (window.innerWidth < 400 ? '30px' : '35px') : '60px', 
                       objectFit: 'contain' 
                     }} 
                   />
                   <span style={{ 
                     fontWeight: '900', 
                     fontSize: window.innerWidth < 768 ? 
-                      (window.innerWidth < 480 ? '12px' : '14px') : '22px', 
+                      (window.innerWidth < 400 ? '11px' : '13px') : '22px', 
                     color: '#2d3748',
                     lineHeight: '1.2'
                   }}>
