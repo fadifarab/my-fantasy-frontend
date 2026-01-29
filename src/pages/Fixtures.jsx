@@ -1,17 +1,16 @@
-// client/src/pages/Fixtures.jsx
 import { useState, useEffect, useContext } from 'react';
 import API from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaInfoCircle, FaArrowRight } from "react-icons/fa";
-import TournamentHeader from '../utils/TournamentHeader'; // استيراد الرأسية
+import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaArrowRight, FaTrophy } from "react-icons/fa";
 
 const Fixtures = () => {
   const { user } = useContext(AuthContext);
   const [fixtures, setFixtures] = useState([]);
-  const [currentGw, setCurrentGw] = useState(null); 
-  const [loading, setLoading] = useState(false);
-  const [leagueLogo, setLeagueLogo] = useState(''); // حالة شعار البطولة
+  const [currentGw, setCurrentGw] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [leagueLogo, setLeagueLogo] = useState('');
+  const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const navigate = useNavigate();
 
@@ -21,134 +20,189 @@ const Fixtures = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 1. جلب رقم الجولة الحالية وبيانات الدوري
   useEffect(() => {
-      const initPage = async () => {
-          try {
-              const { data } = await API.get('/gameweek/status');
-              if (data && data.id) setCurrentGw(data.id);
-              else setCurrentGw(1);
-
-              // جلب شعار البطولة (رابط PostImages)
-              const { data: lData } = await API.get('/leagues/me');
-              if (lData && lData.logoUrl) setLeagueLogo(lData.logoUrl);
-          } catch (error) {
-              console.error("Error fetching initial data", error);
-              setCurrentGw(1);
-          }
-      };
-      initPage();
+    const initPage = async () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const gwParam = params.get('gw');
+        if (gwParam) setCurrentGw(parseInt(gwParam));
+        else {
+          const { data } = await API.get('/gameweek/status');
+          setCurrentGw(data?.id || 1);
+        }
+        const { data: lData } = await API.get('/leagues/me');
+        if (lData?.logoUrl) setLeagueLogo(lData.logoUrl);
+      } catch (error) { setError("فشل في تحميل بيانات الصفحة"); setCurrentGw(1); }
+      finally { setLoading(false); }
+    };
+    initPage();
   }, []);
 
-  // 2. جلب المباريات عند تغير الجولة
   useEffect(() => {
-    if (user && user.leagueId && currentGw !== null) {
-        fetchFixtures(currentGw);
-    }
+    if (currentGw !== null && user?.leagueId) fetchFixtures(currentGw);
   }, [currentGw, user]);
 
   const fetchFixtures = async (gw) => {
     setLoading(true);
     try {
-        if (user.leagueId) {
-            const { data } = await API.get(`/fixtures/${user.leagueId}/${gw}`);
-            setFixtures(data);
-        }
-    } catch (error) { console.error(error); } 
+      const { data } = await API.get(`/fixtures/${user.leagueId}/${gw}`);
+      setFixtures(Array.isArray(data) ? data : []);
+    } catch (error) { setError(`فشل في تحميل المباريات`); }
     finally { setLoading(false); }
   };
 
   const changeGw = (direction) => {
-      if (direction === 'next' && currentGw < 38) setCurrentGw(prev => prev + 1);
-      if (direction === 'prev' && currentGw > 1) setCurrentGw(prev => prev - 1);
+    if (direction === 'next' && currentGw < 38) setCurrentGw(prev => prev + 1);
+    if (direction === 'prev' && currentGw > 1) setCurrentGw(prev => prev - 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (currentGw === null) return <div style={{textAlign:'center', padding:'50px'}}>جاري التحميل...</div>;
+  if (currentGw === null && loading) return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontSize: isMobile ? '24px' : '48px', fontWeight: 'bold' }}>جاري التحميل...</div>
+  );
 
   return (
-    <div style={{ padding: isMobile ? '10px' : '20px', fontFamily: 'Arial, sans-serif', direction: 'rtl', backgroundColor: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #f8fafc 0%, #e2e8f0 100%)', direction: 'rtl', padding: isMobile ? '15px' : '30px', fontFamily: '"Cairo", sans-serif' }}>
       
-      {/* 🏆 رأسية البطولة الرسمية */}
-      <TournamentHeader isMobile={isMobile} logoUrl={leagueLogo} />
-
-      {/* 👕 شريط العودة والعنوان */}
+      {/* 🚀 الـ Header المصلح مع زر العودة 🚀 */}
       <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          marginBottom: '20px', 
-          gap: '15px',
-          backgroundColor: 'white',
-          padding: '10px 15px',
-          borderRadius: '12px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+        display: 'flex',
+        alignItems: 'center',
+        background: 'white',
+        padding: isMobile ? '15px' : '20px 30px',
+        borderRadius: '15px',
+        marginBottom: '25px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+        border: '2px solid #e2e8f0',
+        gap: '20px',
+        position: 'relative' // للسماح بتموضع زر العودة
       }}>
-         <button onClick={() => navigate('/dashboard')} style={{ padding: '8px 12px', cursor:'pointer', border:'none', borderRadius:'8px', background:'#f5f5f5', display:'flex', alignItems:'center', justifyContent:'center' }}>
-             <FaArrowRight color="#38003c" />
-         </button>
-         <h2 style={{ margin: 0, color: '#38003c', display:'flex', alignItems:'center', gap:'10px', fontSize: isMobile ? '18px' : '24px' }}>
-             <FaCalendarAlt size={isMobile ? 18 : 22} /> جدول المباريات
-         </h2>
+        {/* زر العودة المكتشف غيابه */}
+        <button 
+          onClick={() => navigate('/dashboard')}
+          style={{ 
+            width: isMobile ? '45px' : '55px', 
+            height: isMobile ? '45px' : '55px', 
+            borderRadius: '12px', 
+            background: 'linear-gradient(135deg, #38003c 0%, #58005e 100%)', 
+            border: 'none', 
+            color: 'white', 
+            cursor: 'pointer', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+          }}
+        >
+          <FaArrowRight size={isMobile ? 20 : 24} />
+        </button>
+
+        {/* شعار البطولة */}
+        <div style={{
+          width: isMobile ? '55px' : '80px', 
+          height: isMobile ? '55px' : '80px',
+          borderRadius: '10px',
+          padding: '4px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: '1px solid #eee'
+        }}>
+          <img 
+            src={leagueLogo || 'default-logo.png'} 
+            alt="League Logo" 
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+          />
+        </div>
+
+        {/* اسم البطولة */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 style={{
+            margin: 0,
+            fontSize: isMobile ? '22px' : '34px', 
+            fontWeight: '900',
+            color: '#38003c',
+            lineHeight: '1.2'
+          }}>
+            FPL ZEDDINE
+          </h1>
+          <span style={{ fontSize: '13px', color: '#718096', fontWeight: '700' }}>الدوري الرسمي للبطولة</span>
+        </div>
       </div>
 
-      {/* 📅 محدد الجولات */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginBottom: '30px', backgroundColor: 'white', padding: '15px', borderRadius: '15px', maxWidth: '400px', margin: '0 auto 30px auto', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', border: '1px solid #eee' }}>
-          <button onClick={() => changeGw('prev')} disabled={currentGw <= 1} style={{ background: '#f5f5f5', border: 'none', padding: '10px 15px', borderRadius: '8px', cursor: 'pointer' }}><FaChevronRight /></button>
-          <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '12px', color: '#888', fontWeight: 'bold', display: 'block' }}>الدور الأول</span>
-              <h2 style={{ margin: 0, color: '#38003c', fontSize: isMobile ? '20px' : '24px' }}>الجولة {currentGw}</h2>
-          </div>
-          <button onClick={() => changeGw('next')} disabled={currentGw >= 38} style={{ background: '#f5f5f5', border: 'none', padding: '10px 15px', borderRadius: '8px', cursor: 'pointer' }}><FaChevronLeft /></button>
+      {/* Selector - متجاوب */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: isMobile ? '15px' : '40px', marginBottom: '20px', background: 'white', padding: isMobile ? '15px' : '20px', borderRadius: '20px', border: '2px solid #e2e8f0' }}>
+        <button onClick={() => changeGw('prev')} disabled={currentGw <= 1} style={{ width: '50px', height: '50px', borderRadius: '10px', background: currentGw <= 1 ? '#e2e8f0' : '#667eea', border: 'none', color: 'white' }}><FaChevronRight size={24} /></button>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '14px', color: '#718096', fontWeight: '600' }}>الجولة</div>
+          <div style={{ fontSize: '40px', fontWeight: '900', color: '#2d3748', lineHeight: '1' }}>{currentGw || 1}</div>
+        </div>
+        <button onClick={() => changeGw('next')} disabled={currentGw >= 38} style={{ width: '50px', height: '50px', borderRadius: '10px', background: currentGw >= 38 ? '#e2e8f0' : '#667eea', border: 'none', color: 'white' }}><FaChevronLeft size={24} /></button>
       </div>
 
-      {/* ⚽ قائمة المباريات */}
-      <div style={{ maxWidth: '800px', margin: '0 auto', display: 'grid', gap: '15px' }}>
-          {loading ? (
-              <div style={{ textAlign: 'center', padding: '20px' }}>جاري تحميل المباريات... ⏳</div>
-          ) : fixtures.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', backgroundColor: 'white', borderRadius: '10px', color: '#888', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-                  <FaInfoCircle size={30} color="#ccc" />
-                  <p>لا توجد مباريات لهذه الجولة.</p>
+      {/* Fixtures List */}
+      <div style={{ background: 'white', borderRadius: '20px', padding: isMobile ? '15px' : '25px', boxShadow: '0 10px 20px rgba(0,0,0,0.05)', maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ display: 'grid', gap: '15px' }}>
+          {fixtures.map((match, index) => {
+            const homeScore = match.homeScore ?? 0;
+            const awayScore = match.awayScore ?? 0;
+
+            return (
+              <div
+                key={match._id || index}
+                onClick={() => navigate(`/match/${match._id}`)}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr 80px 1fr' : '1fr 150px 1fr',
+                  alignItems: 'center',
+                  padding: isMobile ? '12px 10px' : '20px 30px',
+                  borderRadius: '18px',
+                  background: match.isFinished ? '#ffffff' : '#f8fafc',
+                  border: `3px solid ${match.isFinished ? '#48bb78' : '#e2e8f0'}`,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  marginBottom: '10px'
+                }}
+              >
+                {/* Home Team */}
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'flex-start', gap: '15px' }}>
+                  <img src={match.homeTeamId?.logoUrl} style={{ width: isMobile ? '40px' : '60px', height: isMobile ? '40px' : '60px', objectFit: 'contain' }} />
+                  <span style={{ fontWeight: '900', fontSize: isMobile ? '14px' : '22px', color: '#2d3748' }}>{match.homeTeamId?.name}</span>
+                </div>
+
+                {/* Score Box */}
+                <div style={{ textAlign: 'center' }}>
+                  {match.isFinished ? (
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'center', 
+                      alignItems: 'center', 
+                      background: '#2d3748',
+                      color: '#ffffff',
+                      padding: '8px 12px', 
+                      borderRadius: '10px',
+                      fontSize: isMobile ? '18px' : '26px',
+                      fontWeight: '900',
+                      gap: '8px'
+                    }}>
+                      <span>{homeScore}</span>
+                      <span style={{ color: '#48bb78' }}>-</span>
+                      <span>{awayScore}</span>
+                    </div>
+                  ) : (
+                    <div style={{ background: '#e2e8f0', color: '#2d3748', padding: '5px 15px', borderRadius: '20px', fontWeight: '900', fontSize: '14px' }}>VS</div>
+                  )}
+                </div>
+
+                {/* Away Team */}
+                <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row-reverse', alignItems: 'center', justifyContent: 'flex-start', gap: '15px' }}>
+                  <img src={match.awayTeamId?.logoUrl} style={{ width: isMobile ? '40px' : '60px', height: isMobile ? '40px' : '60px', objectFit: 'contain' }} />
+                  <span style={{ fontWeight: '900', fontSize: isMobile ? '14px' : '22px', color: '#2d3748' }}>{match.awayTeamId?.name}</span>
+                </div>
               </div>
-          ) : (
-              fixtures.map((match, index) => (
-                  <div key={match._id || index} onClick={() => navigate(`/match/${match._id}`)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'white', padding: isMobile ? '15px 10px' : '20px', borderRadius: '12px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', borderRight: match.isFinished ? '5px solid #00ff85' : '5px solid #ddd', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                      
-                      {/* الفريق المستضيف */}
-                      <div style={{ flex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                          <img 
-                            src={match.homeTeamId?.logoUrl || `/kits/${match.homeTeamId?.name}.png`} 
-                            alt="home" 
-                            style={{ width: isMobile ? '45px' : '65px', height: isMobile ? '45px' : '65px', objectFit: 'contain' }} 
-                            onError={(e) => { e.target.src = '/kits/default.png'; }}
-                          />
-                          <span style={{ fontWeight: 'bold', fontSize: isMobile ? '12px' : '16px', color: '#333' }}>{match.homeTeamId?.name}</span>
-                      </div>
-
-                      {/* النتيجة / VS */}
-                      <div style={{ flex: 0.6, textAlign: 'center' }}>
-                          {match.isFinished ? (
-                              <div style={{ fontSize: isMobile ? '20px' : '28px', fontWeight: '900', color: '#38003c', backgroundColor: '#f0f0f0', padding: '5px 10px', borderRadius: '8px', fontFamily: 'monospace' }}>
-                                  {match.homeScore} - {match.awayScore}
-                              </div>
-                          ) : (
-                              <div style={{ backgroundColor: '#38003c', color: '#00ff85', padding: '6px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '13px', border: '1px solid #00ff85' }}>VS</div>
-                          )}
-                          <small style={{display:'block', marginTop:'8px', color:'#aaa', fontSize:'9px'}}>تفاصيل اللقاء</small>
-                      </div>
-
-                      {/* الفريق الضيف */}
-                      <div style={{ flex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                          <img 
-                            src={match.awayTeamId?.logoUrl || `/kits/${match.awayTeamId?.name}.png`} 
-                            alt="away" 
-                            style={{ width: isMobile ? '45px' : '65px', height: isMobile ? '45px' : '65px', objectFit: 'contain' }} 
-                            onError={(e) => { e.target.src = '/kits/default.png'; }}
-                          />
-                          <span style={{ fontWeight: 'bold', fontSize: isMobile ? '12px' : '16px', color: '#333' }}>{match.awayTeamId?.name}</span>
-                      </div>
-                  </div>
-              ))
-          )}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
