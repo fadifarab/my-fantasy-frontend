@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import API from '../utils/api';
 import { 
     FaArrowRight, FaArrowLeft, FaShieldAlt, FaBolt, FaStar, 
-    FaMagic, FaCrown, FaSpinner, FaInfoCircle
+    FaMagic, FaCrown, FaSpinner, FaInfoCircle, FaLock
 } from "react-icons/fa";
 import TournamentHeader from '../utils/TournamentHeader';
 
@@ -19,7 +19,7 @@ const TeamHistory = () => {
     const [gwData, setGwData] = useState(null);
     const [chipsHistory, setChipsHistory] = useState({ p1: {}, p2: {} });
     const [loading, setLoading] = useState(false);
-    const [restricted, setRestricted] = useState(false);
+    const [restricted, setRestricted] = useState(false); // حالة الإخفاء
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [leagueLogo, setLeagueLogo] = useState(null);
 
@@ -74,11 +74,16 @@ const TeamHistory = () => {
     useEffect(() => {
         if (!currentGw) return;
         const fetchGwData = async () => {
-            setLoading(true); setRestricted(false);
+            setLoading(true); 
+            setRestricted(false); // إعادة التصفير عند تغيير الجولة
+            setGwData(null);
             try {
                 const { data } = await API.get(`/gameweek/team-data/${teamId}/${currentGw}`);
-                if (data.restricted) setRestricted(true);
-                else setGwData(data);
+                if (data.restricted) {
+                    setRestricted(true);
+                } else {
+                    setGwData(data);
+                }
             } catch (error) {
                 if(error.response?.status === 403) setRestricted(true);
             } finally { setLoading(false); }
@@ -91,20 +96,14 @@ const TeamHistory = () => {
         const hits = player.transferCost || 0;
         const displayScore = player.finalScore ?? 0;
         
-        // تحسين الأبعاد لمنع التداخل في الهاتف
-        const kitSize = isMobile ? (isSub ? 60 : 70) : (isSub ? 130 : 185);
-        const cardWidth = isMobile ? (isSub ? '85px' : '92px') : (isSub ? '170px' : '220px');
+        const kitSize = isMobile ? (isSub ? 65 : 75) : (isSub ? 130 : 185);
+        const cardMinWidth = isMobile ? (isSub ? '80px' : '90px') : (isSub ? '170px' : '220px');
 
         return (
             <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                flex: isMobile ? '1 1 0px' : 'none', // توزيع متساوي في الموبايل
-                width: isMobile ? 'auto' : cardWidth,
-                maxWidth: isMobile ? cardWidth : 'none',
-                margin: isMobile ? '5px 2px' : '10px 5px', 
-                zIndex: 10 
+                display: 'flex', flexDirection: 'column', alignItems: 'center', 
+                minWidth: cardMinWidth, width: isMobile ? cardMinWidth : 'fit-content',
+                margin: isMobile ? '5px 1px' : '10px 5px', zIndex: 10 
             }}>
                 <div style={{ position: 'relative' }}>
                     <div style={{ width: kitSize, height: kitSize }}>
@@ -115,24 +114,24 @@ const TeamHistory = () => {
                         />
                     </div>
                     {player.isCaptain && (
-                        <div style={{ position: 'absolute', top: isMobile ? '-12px' : '-25px', right: isMobile ? '-6px' : '-15px', zIndex: 15 }}>
-                            <FaCrown size={isMobile ? 22 : 65} color={gwData?.activeChip === 'tripleCaptain' ? "#00ff87" : "#ffd700"} />
+                        <div style={{ position: 'absolute', top: isMobile ? '-15px' : '-25px', right: isMobile ? '-8px' : '-15px', zIndex: 15 }}>
+                            <FaCrown size={isMobile ? 24 : 65} color={gwData?.activeChip === 'tripleCaptain' ? "#00ff87" : "#ffd700"} />
                             {gwData?.activeChip === 'tripleCaptain' && (
-                                <div style={{ color: '#00ff87', fontSize: isMobile ? '9px' : '24px', fontWeight: '900', textShadow: '2px 2px 3px black', marginTop: '-4px', textAlign:'center' }}>x3</div>
+                                <div style={{ color: '#00ff87', fontSize: isMobile ? '10px' : '24px', fontWeight: '900', textShadow: '2px 2px 3px black', marginTop: '-5px', textAlign:'center' }}>x3</div>
                             )}
                         </div>
                     )}
                     {hits > 0 && (
-                        <div style={{ position: 'absolute', top: '5px', left: isMobile ? '-8px' : '-25px', background: '#ff0000', color: 'white', borderRadius: '50%', width: isMobile ? '22px' : '50px', height: isMobile ? '22px' : '50px', fontSize: isMobile ? '12px' : '26px', fontWeight: '900', display: 'flex', justifyContent: 'center', alignItems: 'center', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.4)' }}>
+                        <div style={{ position: 'absolute', top: '5px', left: isMobile ? '-10px' : '-25px', background: '#ff0000', color: 'white', borderRadius: '50%', width: isMobile ? '24px' : '50px', height: isMobile ? '24px' : '50px', fontSize: isMobile ? '12px' : '26px', fontWeight: '900', display: 'flex', justifyContent: 'center', alignItems: 'center', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.4)' }}>
                             -{hits}
                         </div>
                     )}
                 </div>
 
                 <div style={{ 
-                    backgroundColor: '#37003c', color: 'white', padding: isMobile ? '2px 4px' : '6px 15px', borderRadius: '5px', 
-                    fontSize: isMobile ? '10px' : '24px', marginTop: '5px', 
-                    width: '100%', textAlign: 'center', 
+                    backgroundColor: '#37003c', color: 'white', padding: isMobile ? '3px 5px' : '6px 15px', borderRadius: '5px', 
+                    fontSize: isMobile ? '11px' : '24px', marginTop: '5px', 
+                    width: '95%', textAlign: 'center', 
                     borderBottom: player.isCaptain && gwData?.activeChip === 'theBest' ? '3px solid #ffd700' : '2px solid #00ff87', 
                     fontWeight: '900', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
                 }}>
@@ -140,10 +139,10 @@ const TeamHistory = () => {
                 </div>
 
                 <div style={{ 
-                    fontSize: isMobile ? '15px' : '38px', fontWeight: '900', color: '#fff', 
+                    fontSize: isMobile ? '16px' : '38px', fontWeight: '900', color: '#fff', 
                     background: player.isCaptain ? '#000' : (isSub ? '#444' : '#006400'), 
-                    border: isMobile ? '1.5px solid white' : '3px solid white', padding: isMobile ? '2px 6px' : '4px 20px', borderRadius: '10px', marginTop: '4px', 
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.4)', minWidth: isMobile ? '40px' : '90px', textAlign: 'center' 
+                    border: isMobile ? '1.5px solid white' : '3px solid white', padding: isMobile ? '2px 8px' : '4px 20px', borderRadius: '10px', marginTop: '4px', 
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.4)', minWidth: isMobile ? '45px' : '90px', textAlign: 'center' 
                 }}>
                     {displayScore}
                 </div>
@@ -178,7 +177,7 @@ const TeamHistory = () => {
                 {gwData && gwData.isInherited && (
                     <div style={{ marginTop: '15px', backgroundColor: '#fff3e0', color: '#ef6c00', padding: '10px 20px', borderRadius: '10px', fontSize: isMobile ? '11px' : '17px', fontWeight: '900', border: '2px solid #ef6c00', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <FaInfoCircle size={20} />
-                        <span>⚠️ هذا الفريق لم يقم باختيار التشكيلة لهذه الجولة.</span>
+                        <span>⚠️ هذا الفريق لم يقم باختيار التشكيلة؛ التشكيلة تتغير تلقائياً.</span>
                     </div>
                 )}
             </div>
@@ -213,33 +212,45 @@ const TeamHistory = () => {
                 {!isCaptureMode && <button onClick={() => setCurrentGw(prev => Math.min(38, prev + 1))} style={{ border: 'none', background: '#fff', padding: '12px', borderRadius: '50%', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}><FaArrowLeft /></button>}
             </div>
 
-            {gwData && !gwData.noData && (
+            {/* --- 🛡️ رسالة إخفاء التشكيلة --- */}
+            {loading ? (
+                 <div style={{textAlign:'center', padding:'50px'}}><FaSpinner className="spin" size={40} color="#38003c" /></div>
+            ) : restricted ? (
+                <div style={{ 
+                    maxWidth: '800px', margin: '40px auto', padding: '40px 20px', 
+                    background: 'linear-gradient(135deg, #38003c, #5c0062)', 
+                    borderRadius: '25px', textAlign: 'center', color: 'white', 
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.2)', border: '3px solid #00ff87'
+                }}>
+                    <FaLock size={isMobile ? 50 : 80} color="#00ff87" style={{ marginBottom: '20px' }} />
+                    <h2 style={{ fontSize: isMobile ? '22px' : '35px', fontWeight: '900', margin: '0 0 10px 0' }}>تشكيلة الجولة مخفية</h2>
+                    <p style={{ fontSize: isMobile ? '14px' : '20px', opacity: 0.9, fontWeight: 'bold' }}>
+                        لم ينتهِ وقت الديدلاين الخاص بهذه الجولة بعد. سيتم الكشف عن التشكيلة فور إغلاق الجولة.
+                    </p>
+                </div>
+            ) : gwData && !gwData.noData ? (
                 <div key={currentGw} className="pitch-fade-in" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                    {/* الملعب */}
                     <div style={{ 
                         background: `repeating-linear-gradient(0deg, #1b5e20, #1b5e20 60px, #2e7d32 60px, #2e7d32 120px)`,
                         borderRadius: isMobile ? '20px' : '30px', 
-                        padding: isMobile ? '40px 10px' : '100px 30px', 
+                        padding: isMobile ? '30px 5px' : '100px 30px', 
                         minHeight: isMobile ? '450px' : '950px', 
                         display:'flex', flexDirection:'column', justifyContent: 'space-around', border: isMobile ? '6px solid #fff' : '10px solid #fff', position:'relative', boxShadow: '0 15px 30px rgba(0,0,0,0.3)'
                     }}>
                         <div style={{ position: 'absolute', top: isMobile ? '10px' : '30px', left: isMobile ? '10px' : '30px', right: isMobile ? '10px' : '30px', bottom: isMobile ? '10px' : '30px', border: '2px solid rgba(255,255,255,0.3)' }}></div>
                         
-                        {/* الكابتن */}
                         <div style={{ display: 'flex', justifyContent: 'center', width: '100%', zIndex: 10 }}>
                             {gwData.lineup.filter(p => p.isStarter && p.isCaptain).map((p, idx) => (
                                 <PlayerCard key={`cap-${idx}`} player={p} />
                             ))}
                         </div>
 
-                        {/* اللاعبون (القاعدة) - منع التداخل عبر flex: 1 و gap */}
                         <div style={{ 
                             display: 'flex', 
                             justifyContent: 'center', 
-                            gap: isMobile ? '10px' : '60px', // زيادة الفجوة في الموبايل لمنع تداخل الأسماء
+                            gap: isMobile ? '1px' : '60px', 
                             width: '100%', 
-                            flexWrap: 'nowrap',
-                            padding: isMobile ? '0 5px' : '0'
+                            flexWrap: 'nowrap'
                         }}>
                             {gwData.lineup.filter(p => p.isStarter && !p.isCaptain).map((p, idx) => (
                                 <PlayerCard key={`star-${idx}`} player={p} />
@@ -247,13 +258,12 @@ const TeamHistory = () => {
                         </div>
                     </div>
 
-                    {/* دكة البدلاء */}
                     <div style={{ marginTop: '20px', background: '#fff', padding: isMobile ? '15px' : '30px', borderRadius: '25px', boxShadow: '0 5px 15px rgba(0,0,0,0.05)' }}>
                         <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '900', marginBottom: '15px', color: '#38003c', textAlign: 'center' }}>🛋 دكة البدلاء</div>
                         <div style={{ 
                             display: 'flex', 
                             justifyContent: 'center', 
-                            gap: isMobile ? '8px' : '40px', 
+                            gap: isMobile ? '2px' : '40px', 
                             flexWrap: 'nowrap'
                         }}>
                             {gwData.lineup.filter(p => !p.isStarter).map((p, idx) => (
@@ -262,6 +272,8 @@ const TeamHistory = () => {
                         </div>
                     </div>
                 </div>
+            ) : (
+                <div style={{textAlign:'center', padding:'50px', color: '#666', fontWeight:'bold'}}>لا توجد بيانات لهذه الجولة</div>
             )}
             <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
         </div>
