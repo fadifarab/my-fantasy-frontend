@@ -19,7 +19,7 @@ const TeamHistory = () => {
     const [gwData, setGwData] = useState(null);
     const [chipsHistory, setChipsHistory] = useState({ p1: {}, p2: {} });
     const [loading, setLoading] = useState(false);
-    const [restricted, setRestricted] = useState(false); // حالة الإخفاء
+    const [restricted, setRestricted] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [leagueLogo, setLeagueLogo] = useState(null);
 
@@ -75,7 +75,7 @@ const TeamHistory = () => {
         if (!currentGw) return;
         const fetchGwData = async () => {
             setLoading(true); 
-            setRestricted(false); // إعادة التصفير عند تغيير الجولة
+            setRestricted(false);
             setGwData(null);
             try {
                 const { data } = await API.get(`/gameweek/team-data/${teamId}/${currentGw}`);
@@ -212,7 +212,6 @@ const TeamHistory = () => {
                 {!isCaptureMode && <button onClick={() => setCurrentGw(prev => Math.min(38, prev + 1))} style={{ border: 'none', background: '#fff', padding: '12px', borderRadius: '50%', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}><FaArrowLeft /></button>}
             </div>
 
-            {/* --- 🛡️ رسالة إخفاء التشكيلة --- */}
             {loading ? (
                  <div style={{textAlign:'center', padding:'50px'}}><FaSpinner className="spin" size={40} color="#38003c" /></div>
             ) : restricted ? (
@@ -230,9 +229,23 @@ const TeamHistory = () => {
                 </div>
             ) : gwData && !gwData.noData ? (
                 <div key={currentGw} className="pitch-fade-in" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                    
+                    {/* --- ✅ التعديل هنا: شريط الخاصية بنفس تنسيق MyTeam --- */}
+                    {gwData.activeChip && gwData.activeChip !== 'none' && CHIPS[gwData.activeChip] && (
+                        <div style={{ 
+                            backgroundColor: '#38003c', color: '#00ff87', padding: '10px', 
+                            borderRadius: '12px 12px 0 0', textAlign: 'center', fontWeight: 'bold', 
+                            border: '2px solid #00ff87', borderBottom: 'none', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' 
+                        }}>
+                            {CHIPS[gwData.activeChip].icon} 
+                            <span>الخاصية المستخدمة: {CHIPS[gwData.activeChip].label}</span>
+                        </div>
+                    )}
+
                     <div style={{ 
                         background: `repeating-linear-gradient(0deg, #1b5e20, #1b5e20 60px, #2e7d32 60px, #2e7d32 120px)`,
-                        borderRadius: isMobile ? '20px' : '30px', 
+                        borderRadius: gwData.activeChip && gwData.activeChip !== 'none' ? '0 0 30px 30px' : '30px', 
                         padding: isMobile ? '30px 5px' : '100px 30px', 
                         minHeight: isMobile ? '450px' : '950px', 
                         display:'flex', flexDirection:'column', justifyContent: 'space-around', border: isMobile ? '6px solid #fff' : '10px solid #fff', position:'relative', boxShadow: '0 15px 30px rgba(0,0,0,0.3)'
@@ -259,7 +272,7 @@ const TeamHistory = () => {
                     </div>
 
                     <div style={{ marginTop: '20px', background: '#fff', padding: isMobile ? '15px' : '30px', borderRadius: '25px', boxShadow: '0 5px 15px rgba(0,0,0,0.05)' }}>
-                        <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '900', marginBottom: '15px', color: '#38003c', textAlign: 'center' }}>🛋 دكة البدلاء</div>
+                        <div style={{ fontSize: isMobile ? '18px' : '24px', fontWeight: '900', marginBottom: '15px', color: '#38003c', textAlign: 'center' }}> Couch دكة البدلاء</div>
                         <div style={{ 
                             display: 'flex', 
                             justifyContent: 'center', 
